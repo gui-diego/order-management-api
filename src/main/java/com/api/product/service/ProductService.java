@@ -36,9 +36,6 @@ public class ProductService {
     }
 
     public ProductResponse getById(Integer id) {
-        if (id == null) {
-            throw new BadRequestException("ID não pode ser nulo");
-        }
         Product product = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com o ID: " + id));
 
@@ -49,9 +46,6 @@ public class ProductService {
     }
 
     public void delete(Integer id) {
-        if (id == null) {
-            throw new BadRequestException("ID não pode ser nulo");
-        }
         ProductResponse product = getById(id);
         repository.deleteById(product.id());
     }
