@@ -84,7 +84,7 @@ public class CategoryControllerTest {
 
         int id = createCategory();
 
-        mockMvc.perform(delete("/categorerdrfy/" + id))
+        mockMvc.perform(delete("/category/" + id))
                 .andExpect(status().isNoContent());
     }
 }
