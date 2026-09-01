@@ -1,5 +1,7 @@
 package com.api.product.controller;
 
+import com.api.category.dto.CategoryRequest;
+import com.api.category.service.CategoryService;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,18 +30,30 @@ class ProductControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private CategoryService categoryService;
+
+    private record ProductTestData(int productId, int categoryId) {}
+
+    private int createCategory() {
+        CategoryRequest request = new CategoryRequest(null, "Eletrônicos");
+        return categoryService.save(request).id();
+    }
+
     @Test
     void shouldCreateProduct() throws Exception {
 
+        int categoryId = createCategory();
+
         String json = """
-            {
-              "price": 700,
-              "description": "TV DA MARCA XYZ",
-              "category": 1,
-              "stock": 10,
-              "active": true
-            }
-            """;
+        {
+          "price": 700,
+          "description": "TV DA MARCA XYZ",
+          "category": %d,
+          "stock": 10,
+          "active": true
+        }
+        """.formatted(categoryId);
 
         mockMvc.perform(
                         post("/product")
@@ -49,17 +63,19 @@ class ProductControllerTest {
                 .andExpect(status().isCreated());
     }
 
-    private int createProduct() throws Exception {
+    private ProductTestData createProduct() throws Exception {
+
+        int categoryId = createCategory();
 
         String json = """
-                {
-                  "price": 700,
-                  "description": "TV DA MARCA XYZ",
-                  "category": 1,
-                  "stock": 10,
-                  "active": true
-                }
-                """;
+        {
+          "price": 700,
+          "description": "TV DA MARCA XYZ",
+          "category": %d,
+          "stock": 10,
+          "active": true
+        }
+        """.formatted(categoryId);
 
         MvcResult result = mockMvc.perform(
                         post("/product")
@@ -72,33 +88,38 @@ class ProductControllerTest {
         JsonNode response =
                 objectMapper.readTree(result.getResponse().getContentAsString());
 
-        return response.get("id").asInt();
+        int productId = response.get("id").asInt();
+
+        return new ProductTestData(productId, categoryId);
     }
 
     @Test
     void shouldGetProductById() throws Exception {
 
-        int id = createProduct();
+        ProductTestData data = createProduct();
 
-        mockMvc.perform(get("/product/" + id))
+        mockMvc.perform(get("/product/" + data.productId()))
                 .andExpect(status().isOk());
     }
 
     @Test
     void shouldUpdateProduct() throws Exception {
 
-        int id = createProduct();
+        ProductTestData data = createProduct();
 
         String json = """
-            {
-              "id": %d,
-              "price": 800,
-              "description": "TV ATUALIZADA",
-              "category": 1,
-              "stock": 20,
-              "active": true
-            }
-            """.formatted(id);
+        {
+          "id": %d,
+          "price": 800,
+          "description": "TV ATUALIZADA",
+          "category": %d,
+          "stock": 20,
+          "active": true
+        }
+        """.formatted(
+                data.productId(),
+                data.categoryId()
+        );
 
         mockMvc.perform(
                         put("/product")
@@ -111,9 +132,9 @@ class ProductControllerTest {
     @Test
     void shouldDeleteProduct() throws Exception {
 
-        int id = createProduct();
+        ProductTestData data = createProduct();
 
-        mockMvc.perform(delete("/product/" + id))
+        mockMvc.perform(delete("/product/" + data.productId()))
                 .andExpect(status().isNoContent());
     }
 }

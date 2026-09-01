@@ -10,12 +10,11 @@ Em desenvolvimento.
 
 ### Atualmente implementado
 
-- Cadastro de produtos
-- Consulta de produtos
-- Atualização de produtos
-- Exclusão de produtos
+- CRUD de produtos
+- CRUD de categorias
 - Validação dos dados de entrada
 - Tratamento global de exceções
+- Testes de integração
 
 ## 🛠️ Tecnologias
 
