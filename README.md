@@ -1,5 +1,7 @@
 # ORDER MANAGEMENT API
 
+[![CI](https://github.com/gui-diego/order-management-api/actions/workflows/ci.yml/badge.svg)](https://github.com/gui-diego/order-management-api/actions/workflows/ci.yml)
+
 API REST para gerenciamento de pedidos e produtos, desenvolvida com Java e Spring Boot.
 
 O projeto está sendo desenvolvido de forma incremental, começando pelo gerenciamento de produtos e evoluindo posteriormente para um sistema completo de e-commerce.
@@ -15,6 +17,7 @@ Em desenvolvimento.
 - Validação dos dados de entrada
 - Tratamento global de exceções
 - Testes de integração
+- CI com GitHub Actions para execução automática dos testes de integração
 
 ## 🛠️ Tecnologias
 
