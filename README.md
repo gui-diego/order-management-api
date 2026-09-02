@@ -1,6 +1,6 @@
 # ORDER MANAGEMENT API
 
-[![CI](https://github.com/gui-diego/order-management-api/actions/workflows/ci.yml/badge.svg)](https://github.com/gui-diego/order-management-api/actions/workflows/ci.yml)
+[![CI](https://github.com/gui-diego/order-management-api/actions/workflows/ci.yaml/badge.svg)](https://github.com/gui-diego/order-management-api/actions/workflows/ci.yaml)
 
 API REST para gerenciamento de pedidos e produtos, desenvolvida com Java e Spring Boot.
 
