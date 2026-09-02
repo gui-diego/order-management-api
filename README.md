@@ -4,8 +4,7 @@
 
 API REST para gerenciamento de pedidos e produtos, desenvolvida com Java e Spring Boot.
 
-O projeto está sendo desenvolvido de forma incremental, começando pelo gerenciamento de produtos e evoluindo posteriormente para um sistema completo de e-commerce.
-
+O projeto está sendo desenvolvido de forma incremental, com foco na implementação de um fluxo de gerenciamento de produtos e pedidos, abrangendo categorias, produtos, pedidos e itens do pedido.
 ## 🚧 Status
 
 Em desenvolvimento.
