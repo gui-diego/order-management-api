@@ -74,7 +74,7 @@ public class ProductService {
         );
     }
 
-    public void decrementStock(Integer productId, Integer quantity) {
-        repository.decrementStock(productId, quantity);
+    public int decrementStock(Integer productId, Integer quantity) {
+        return repository.decrementStock(productId, quantity);
     }
 }

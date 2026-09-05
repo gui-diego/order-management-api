@@ -68,6 +68,14 @@ public class OrderService {
             items.add(orderItem);
         }
 
+        for (OrderItem item : items) {
+            int updatedRows = productService.decrementStock(item.getProduct().getId(), item.getQuantity());
+
+            if (updatedRows == 0) {
+                throw new BadRequestException("Estoque insuficiente para o produto: " + item.getProduct().getDescription());
+            }
+        }
+
         Order order = new Order();
         order.setCreatedAt(LocalDateTime.now());
         order.setStatus(StatusOrder.PROCESSING);
@@ -77,9 +85,6 @@ public class OrderService {
 
         Order orderSaved = repository.save(order);
 
-        for (OrderItem item : orderSaved.getItems()) {
-            productService.decrementStock(item.getProduct().getId(), item.getQuantity());
-        }
 
         orderSaved.setStatus(StatusOrder.COMPLETED);
 
