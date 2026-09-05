@@ -2,6 +2,7 @@ package com.api.product.controller;
 
 import com.api.product.dto.ProductRequest;
 import com.api.product.dto.ProductResponse;
+import com.api.product.entity.Product;
 import com.api.product.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -31,8 +32,8 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponse> getProductById(@PathVariable("id") Integer id) {
-        ProductResponse response = service.getById(id);
+    public ResponseEntity<Product> getProductById(@PathVariable("id") Integer id) {
+        Product response = service.getById(id);
         return ResponseEntity.ok(response);
     }
 

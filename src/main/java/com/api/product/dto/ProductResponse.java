@@ -1,4 +1,11 @@
 package com.api.product.dto;
 
-public record ProductResponse(Integer id, String description) {
+import java.math.BigDecimal;
+
+public record ProductResponse(
+        Integer id,
+        String description,
+        Integer stock,
+        BigDecimal price
+        ) {
 }

@@ -29,25 +29,23 @@ public class ProductService {
         product.setCategory(category);
         Product saved = repository.save(product);
 
-        return new ProductResponse(
-                saved.getId(),
-                saved.getDescription()
-        );
+        return getProductResponse(saved, product);
     }
 
-    public ProductResponse getById(Integer id) {
+    public Product getById(Integer id) {
         Product product = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com o ID: " + id));
 
-        return new ProductResponse(
-                product.getId(),
-                product.getDescription()
-        );
+        if (!product.isActive()) {
+            throw new BadRequestException("Não foi possível retornar pois o produto informado está inativo");
+        }
+
+        return product;
     }
 
     public void delete(Integer id) {
-        ProductResponse product = getById(id);
-        repository.deleteById(product.id());
+        Product product = getById(id);
+        repository.deleteById(product.getId());
     }
 
     public ProductResponse update(ProductRequest request) {
@@ -64,9 +62,19 @@ public class ProductService {
 
         Product updated = repository.save(product);
 
+        return getProductResponse(updated, product);
+    }
+
+    private static ProductResponse getProductResponse(Product saved, Product product) {
         return new ProductResponse(
-                updated.getId(),
-                updated.getDescription()
+                saved.getId(),
+                saved.getDescription(),
+                product.getStock(),
+                product.getPrice()
         );
+    }
+
+    public void decrementStock(Integer productId, Integer quantity) {
+        repository.decrementStock(productId, quantity);
     }
 }
