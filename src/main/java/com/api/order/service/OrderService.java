@@ -1,6 +1,7 @@
 package com.api.order.service;
 
 import com.api.exception.BadRequestException;
+import com.api.exception.ResourceNotFoundException;
 import com.api.order.dto.OrderRequest;
 import com.api.order.dto.OrderResponse;
 import com.api.order.entity.Order;
@@ -9,10 +10,12 @@ import com.api.order.repository.OrderRepository;
 import com.api.orderItem.dto.OrderItemDTO;
 import com.api.orderItem.entity.OrderItem;
 import com.api.orderItem.entity.OrderItemResponse;
+import com.api.product.dto.ProductOrderResponse;
 import com.api.product.dto.ProductResponse;
 import com.api.product.entity.Product;
 import com.api.product.service.ProductService;
 import jakarta.transaction.Transactional;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -65,10 +68,6 @@ public class OrderService {
             Product product = productService.getById(item.productId());
             Integer quantity = item.quantity();
 
-            if (quantity == 0 || quantity < 0) {
-                throw new BadRequestException("Não é possível seguir com o pedido, a quantidade dos itens deve ser maior que zero");
-            }
-
             if (quantity > product.getStock()) {
                 throw new BadRequestException("Estoque insuficiente para o produto: " + product.getDescription());
             }
@@ -108,7 +107,7 @@ public class OrderService {
                 .stream()
                 .map(item -> new OrderItemResponse(
                         item.getId(),
-                        new ProductResponse(item.getProduct().getId(), item.getProduct().getDescription(), null, item.getProduct().getPrice()),
+                        new ProductOrderResponse(item.getProduct().getId(), item.getProduct().getDescription(), item.getProduct().getPrice()),
                         item.getQuantity(),
                         item.getUnitPrice(),
                         item.getSubtotal()
@@ -116,4 +115,16 @@ public class OrderService {
                 .toList();
     }
 
+    public OrderResponse getById(Integer id) {
+        Optional<Order> orderOptional = repository.findById(id);
+
+        if (orderOptional.isEmpty()) {
+            throw new ResourceNotFoundException("Não foi possível encontrar um pedido associado ao id informado: " + id);
+        }
+
+        Order order = orderOptional.get();
+        List<OrderItemResponse> orderItemResponse = getOrderItemResponses(order);
+
+        return new OrderResponse(order.getId(), order.getCreatedAt(), order.getStatus(), order.getTotal(), orderItemResponse);
+    }
 }

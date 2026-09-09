@@ -34,8 +34,7 @@ public class CategoryController {
 
     @GetMapping("/{id}")
     public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable("id") Integer id) {
-        CategoryResponse response = service.getById(id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(service.getById(id));
     }
 
     @DeleteMapping("/{id}")

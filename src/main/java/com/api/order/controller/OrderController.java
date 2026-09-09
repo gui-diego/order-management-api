@@ -3,12 +3,10 @@ package com.api.order.controller;
 import com.api.order.dto.OrderRequest;
 import com.api.order.dto.OrderResponse;
 import com.api.order.service.OrderService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/order")
@@ -20,9 +18,15 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<OrderResponse> save(@RequestBody OrderRequest request) {
+    public ResponseEntity<OrderResponse> save(@Valid @RequestBody OrderRequest request) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(service.createOrder(request));
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<OrderResponse> getById(@PathVariable("id") Integer id) {
+        return ResponseEntity.ok(service.getById(id));
+    }
+
 }
