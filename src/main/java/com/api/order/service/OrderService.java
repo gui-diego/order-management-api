@@ -17,9 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @Transactional
@@ -35,18 +33,36 @@ public class OrderService {
     }
 
     public OrderResponse createOrder(OrderRequest request) {
+        List<OrderItemDTO> itemsDTO = validateOrderItems(request);
+        Order orderSaved = processOrder(itemsDTO);
+        List<OrderItemResponse> itemsResponse = getOrderItemResponses(orderSaved);
+        return new OrderResponse(orderSaved.getId(), orderSaved.getCreatedAt(), orderSaved.getStatus(), orderSaved.getTotal(), itemsResponse);
+    }
 
+    private List<OrderItemDTO> validateOrderItems(OrderRequest request) {
         List<OrderItemDTO> itemsDTO = request.items();
         if (itemsDTO == null || itemsDTO.isEmpty()) {
             throw new BadRequestException("Lista de pedidos não pode ser nula ou vazia");
         }
 
+        Set<Integer> uniqueProductIds = new HashSet<>();
+        for (OrderItemDTO orderItemDTO : itemsDTO) {
+            if (!uniqueProductIds.add(orderItemDTO.productId())) {
+                throw new BadRequestException(
+                        "Não é permitido adicionar o mesmo produto mais de uma vez ao pedido: "
+                                + orderItemDTO.productId()
+                );
+            }
+        }
+        return itemsDTO;
+    }
+
+    private Order processOrder(List<OrderItemDTO> itemsDTO) {
         BigDecimal totalPrice = BigDecimal.ZERO;
         List<OrderItem> items = new ArrayList<>();
 
         for (OrderItemDTO item : itemsDTO) {
             Product product = productService.getById(item.productId());
-
             Integer quantity = item.quantity();
 
             if (quantity == 0 || quantity < 0) {
@@ -82,25 +98,22 @@ public class OrderService {
         items.forEach( item -> item.setOrder(order));
         order.setItems(items);
         order.setTotal(totalPrice);
-
         Order orderSaved = repository.save(order);
-
-
         orderSaved.setStatus(StatusOrder.COMPLETED);
+        return orderSaved;
+    }
 
-        List<OrderItemResponse> itemsResponse = orderSaved.getItems()
+    private List<OrderItemResponse> getOrderItemResponses(Order orderSaved) {
+        return orderSaved.getItems()
                 .stream()
                 .map(item -> new OrderItemResponse(
-                   item.getId(),
-                   new ProductResponse(item.getProduct().getId(), item.getProduct().getDescription(), null, item.getProduct().getPrice()),
-                   item.getQuantity(),
-                   item.getUnitPrice(),
-                   item.getSubtotal()
+                        item.getId(),
+                        new ProductResponse(item.getProduct().getId(), item.getProduct().getDescription(), null, item.getProduct().getPrice()),
+                        item.getQuantity(),
+                        item.getUnitPrice(),
+                        item.getSubtotal()
                 ))
                 .toList();
-
-        // dps de realizar todas as operacoes atomicas no banco vou createOrder.setStatus(StatusOrder.COMPLETED);
-    return new OrderResponse(orderSaved.getId(), orderSaved.getCreatedAt(), orderSaved.getStatus(), orderSaved.getTotal(), itemsResponse);
     }
 
 }
