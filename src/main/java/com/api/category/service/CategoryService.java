@@ -5,7 +5,9 @@ import com.api.category.dto.CategoryResponse;
 import com.api.category.entity.Category;
 import com.api.category.repository.CategoryRepository;
 import com.api.exception.BadRequestException;
+import com.api.exception.ConflictException;
 import com.api.exception.ResourceNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -39,7 +41,11 @@ public class CategoryService {
 
     public void delete(Integer id) {
         CategoryResponse category = getById(id);
-        repository.deleteById(category.id());
+        try {
+            repository.deleteById(category.id());
+        } catch (DataIntegrityViolationException ex) {
+            throw new ConflictException("Não é possível excluir a categoria porque ela possui produtos associados");
+        }
     }
 
     public CategoryResponse update(CategoryRequest request) {

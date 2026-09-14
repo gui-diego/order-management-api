@@ -1,21 +1,27 @@
 package com.api.product.service;
 
 import com.api.category.entity.Category;
+import com.api.category.service.CategoryService;
 import com.api.exception.BadRequestException;
+import com.api.exception.ConflictException;
 import com.api.exception.ResourceNotFoundException;
 import com.api.product.dto.ProductRequest;
 import com.api.product.dto.ProductResponse;
 import com.api.product.entity.Product;
 import com.api.product.repository.ProductRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ProductService {
 
     private final ProductRepository repository;
+    private final CategoryService categoryService;
 
-    public ProductService(ProductRepository repository) {
+    public ProductService(ProductRepository repository,
+                          CategoryService categoryService) {
         this.repository = repository;
+        this.categoryService = categoryService;
     }
 
     public ProductResponse save(ProductRequest request) {
@@ -24,6 +30,7 @@ public class ProductService {
         product.setStock(request.stock());
         product.setPrice(request.price());
         product.setActive(true);
+        categoryService.getById(request.category());
         Category category = new Category();
         category.setId(request.category());
         product.setCategory(category);
@@ -45,7 +52,11 @@ public class ProductService {
 
     public void delete(Integer id) {
         Product product = getById(id);
-        repository.deleteById(product.getId());
+        try {
+            repository.deleteById(product.getId());
+        } catch (DataIntegrityViolationException ex) {
+            throw new ConflictException("Não é possível excluir o produto porque ele possui itens de pedido associados");
+        }
     }
 
     public ProductResponse update(ProductRequest request) {
