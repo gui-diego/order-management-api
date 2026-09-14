@@ -11,19 +11,27 @@ Em desenvolvimento.
 
 ### Atualmente implementado
 
-- CRUD de produtos
-- CRUD de categorias
-- Validação dos dados de entrada
-- Tratamento global de exceções
-- Testes de integração
-- CI com GitHub Actions para execução automática dos testes de integração
+* CRUD de produtos
+* CRUD de categorias
+* Criação de pedido
+* Validação dos dados de entrada
+* Tratamento global de exceções
+* Testes de integração
+* CI com GitHub Actions para execução automática dos testes
+* Documentação da API com Swagger
+
+## 📚 Documentação
+
+A documentação interativa da API está disponível através do Swagger UI após iniciar a aplicação:
+
+`http://localhost:8080/swagger-ui/index.html`
 
 ## 🛠️ Tecnologias
 
-- Java 21
-- Spring Boot
-- Spring Web
-- Spring Data JPA
-- Bean Validation
-- Maven
-- MySQL
+* Java 21
+* Spring Boot
+* Spring Web
+* Spring Data JPA
+* Bean Validation
+* Maven
+* MySQL
