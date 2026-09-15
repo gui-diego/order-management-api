@@ -34,13 +34,6 @@ Crie um banco de dados MySQL chamado `order_management`:
 CREATE DATABASE order_management;
 ```
 
-Por padrão, a aplicação utiliza as seguintes credenciais locais:
-
-```yaml
-username: root
-password: root
-```
-
 Caso necessário, ajuste a URL de conexão, o usuário e a senha em `src/main/resources/application.yaml`.
 
 ### Inicialização

@@ -13,7 +13,7 @@ jobs:
     env:
       DB_URL: ${{ vars.DB_URL }}
       DB_USERNAME: ${{ vars.DB_USERNAME }}
-      DB_PASSWORD: ${{ vars.DB_PASSWORD }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
     services:
       mysql:
