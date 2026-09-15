@@ -1,29 +1,81 @@
-# ORDER MANAGEMENT API
+# Order Management API
 
 [![CI](https://github.com/gui-diego/order-management-api/actions/workflows/ci.yaml/badge.svg)](https://github.com/gui-diego/order-management-api/actions/workflows/ci.yaml)
 
 API REST para gerenciamento de pedidos e produtos, desenvolvida com Java e Spring Boot.
 
 O projeto está sendo desenvolvido de forma incremental, com foco na implementação de um fluxo de gerenciamento de produtos e pedidos, abrangendo categorias, produtos, pedidos e itens do pedido.
+
 ## 🚧 Status
 
-Em desenvolvimento.
+Em desenvolvimento
 
 ### Atualmente implementado
 
-* CRUD de produtos
-* CRUD de categorias
-* Criação de pedido
-* Validação dos dados de entrada
-* Tratamento global de exceções
-* Testes de integração
-* * Testes unitários
-* CI com GitHub Actions para execução automática dos testes
-* Documentação da API com Swagger
+- CRUD de produtos
+- CRUD de categorias
+- Criação de pedidos
+- Validação dos dados de entrada
+- Tratamento global de exceções
+- Testes unitários e de integração
+- CI com GitHub Actions para execução automática dos testes
+- Documentação da API com Swagger
+
+### Pré-requisitos
+
+- Java 21
+- MySQL 8 ou superior
+
+### Configuração do banco de dados
+
+Crie um banco de dados MySQL chamado `order_management`:
+
+```sql
+CREATE DATABASE order_management;
+```
+
+Por padrão, a aplicação utiliza as seguintes credenciais locais:
+
+```yaml
+username: root
+password: root
+```
+
+Caso necessário, ajuste a URL de conexão, o usuário e a senha em `src/main/resources/application.yaml`.
+
+### Inicialização
+
+No diretório raiz do projeto, execute:
+
+```bash
+./mvnw spring-boot:run
+```
+
+No Windows, use:
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+A aplicação será iniciada em `http://localhost:8080`.
+
+## 🧪 Testes
+
+Para executar os testes unitários e de integração:
+
+```bash
+./mvnw test
+```
+
+No Windows, use:
+
+```powershell
+.\mvnw.cmd test
+```
 
 ## 📚 Documentação
 
-A documentação interativa da API está disponível através do Swagger UI após iniciar a aplicação:
+A documentação interativa da API está disponível no Swagger UI após iniciar a aplicação:
 
 `http://localhost:8080/swagger-ui/index.html`
 
@@ -36,3 +88,7 @@ A documentação interativa da API está disponível através do Swagger UI apó
 * Bean Validation
 * Maven
 * MySQL
+* JUnit
+* Mockito
+* GitHub Actions
+* Swagger / OpenAPI
