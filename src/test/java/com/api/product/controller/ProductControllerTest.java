@@ -2,6 +2,7 @@ package com.api.product.controller;
 
 import com.api.category.dto.CategoryRequest;
 import com.api.category.service.CategoryService;
+import com.api.product.repository.ProductRepository;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,10 +14,12 @@ import org.springframework.test.web.servlet.MvcResult;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -32,6 +35,9 @@ class ProductControllerTest {
 
     @Autowired
     private CategoryService categoryService;
+
+    @Autowired
+    private ProductRepository productRepository;
 
     private record ProductTestData(int productId, int categoryId) {}
 
@@ -60,7 +66,11 @@ class ProductControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.price").value(700))
+                .andExpect(jsonPath("$.description").value("TV DA MARCA XYZ"))
+                .andExpect(jsonPath("$.stock").value(10));
     }
 
     private ProductTestData createProduct() throws Exception {
@@ -99,7 +109,13 @@ class ProductControllerTest {
         ProductTestData data = createProduct();
 
         mockMvc.perform(get("/product/" + data.productId()))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(data.productId()))
+                .andExpect(jsonPath("$.description").value("TV DA MARCA XYZ"))
+                .andExpect(jsonPath("$.price").value(700))
+                .andExpect(jsonPath("$.category.id").value(data.categoryId()))
+                .andExpect(jsonPath("$.stock").value(10))
+                .andExpect(jsonPath("$.active").value(true));
     }
 
     @Test
@@ -126,7 +142,11 @@ class ProductControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(data.productId()))
+                .andExpect(jsonPath("$.price").value(800))
+                .andExpect(jsonPath("$.description").value("TV ATUALIZADA"))
+                .andExpect(jsonPath("$.stock").value(20));
     }
 
     @Test
@@ -136,5 +156,7 @@ class ProductControllerTest {
 
         mockMvc.perform(delete("/product/" + data.productId()))
                 .andExpect(status().isNoContent());
+
+        assertTrue(productRepository.findById(data.productId()).isEmpty());
     }
 }

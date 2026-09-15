@@ -2,6 +2,7 @@ package com.api.category.controller;
 
 
 import com.api.category.dto.CategoryRequest;
+import com.api.category.repository.CategoryRepository;
 import com.api.category.service.CategoryService;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
@@ -11,10 +12,12 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -27,6 +30,9 @@ public class CategoryControllerTest {
 
     @Autowired
     private CategoryService categoryService;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     private int createCategory() {
         CategoryRequest request = new CategoryRequest(null, "Eletrônicos");
@@ -47,7 +53,9 @@ public class CategoryControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.name").value("ELETRÔNICOS"));
     }
 
     @Test
@@ -56,7 +64,9 @@ public class CategoryControllerTest {
         int id = createCategory();
 
         mockMvc.perform(get("/category/" + id))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.name").value("Eletrônicos"));
     }
 
     @Test
@@ -66,8 +76,8 @@ public class CategoryControllerTest {
 
         String json = """
         {
-          "id": %d,
-          "name": "MODA"
+            "id": %d,
+            "name": "MODA"
         }
         """.formatted(id);
 
@@ -76,7 +86,9 @@ public class CategoryControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.name").value("MODA"));
     }
 
     @Test
@@ -86,5 +98,7 @@ public class CategoryControllerTest {
 
         mockMvc.perform(delete("/category/" + id))
                 .andExpect(status().isNoContent());
+
+        assertTrue(categoryRepository.findById(id).isEmpty());
     }
 }
