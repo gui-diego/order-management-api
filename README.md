@@ -17,6 +17,7 @@ Em desenvolvimento.
 * Validação dos dados de entrada
 * Tratamento global de exceções
 * Testes de integração
+* * Testes unitários
 * CI com GitHub Actions para execução automática dos testes
 * Documentação da API com Swagger
 
