@@ -70,7 +70,7 @@ public class OrderControllerTest {
             }
             """.formatted(product.getId());
 
-        String response = mockMvc.perform(post("/order")
+        String response = mockMvc.perform(post("/orders")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
                 .andExpect(status().isCreated())

@@ -49,7 +49,7 @@ public class CategoryControllerTest {
         """;
 
         mockMvc.perform(
-                        post("/category")
+                        post("/categories")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
@@ -63,7 +63,7 @@ public class CategoryControllerTest {
 
         int id = createCategory();
 
-        mockMvc.perform(get("/category/" + id))
+        mockMvc.perform(get("/categories/" + id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id))
                 .andExpect(jsonPath("$.name").value("Eletrônicos"));
@@ -82,7 +82,7 @@ public class CategoryControllerTest {
         """.formatted(id);
 
         mockMvc.perform(
-                        put("/category")
+                        put("/categories")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
@@ -96,7 +96,7 @@ public class CategoryControllerTest {
 
         int id = createCategory();
 
-        mockMvc.perform(delete("/category/" + id))
+        mockMvc.perform(delete("/categories/" + id))
                 .andExpect(status().isNoContent());
 
         assertTrue(categoryRepository.findById(id).isEmpty());

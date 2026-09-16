@@ -62,7 +62,7 @@ class ProductControllerTest {
         """.formatted(categoryId);
 
         mockMvc.perform(
-                        post("/product")
+                        post("/products")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
@@ -88,7 +88,7 @@ class ProductControllerTest {
         """.formatted(categoryId);
 
         MvcResult result = mockMvc.perform(
-                        post("/product")
+                        post("/products")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
@@ -108,7 +108,7 @@ class ProductControllerTest {
 
         ProductTestData data = createProduct();
 
-        mockMvc.perform(get("/product/" + data.productId()))
+        mockMvc.perform(get("/products/" + data.productId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(data.productId()))
                 .andExpect(jsonPath("$.description").value("TV DA MARCA XYZ"))
@@ -138,7 +138,7 @@ class ProductControllerTest {
         );
 
         mockMvc.perform(
-                        put("/product")
+                        put("/products")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
@@ -154,7 +154,7 @@ class ProductControllerTest {
 
         ProductTestData data = createProduct();
 
-        mockMvc.perform(delete("/product/" + data.productId()))
+        mockMvc.perform(delete("/products/" + data.productId()))
                 .andExpect(status().isNoContent());
 
         assertTrue(productRepository.findById(data.productId()).isEmpty());
