@@ -36,6 +36,8 @@ CREATE DATABASE order_management;
 
 Caso necessário, ajuste a URL de conexão, o usuário e a senha em `src/main/resources/application.yaml`.
 
+O schema é versionado pelo Flyway. Na primeira inicialização com o banco vazio, a migration `V1__create_order_management_schema.sql` cria todas as tabelas automaticamente. O Hibernate está configurado apenas para validar o schema;
+
 ### Inicialização
 
 No diretório raiz do projeto, execute:
@@ -85,3 +87,4 @@ A documentação interativa da API está disponível no Swagger UI após iniciar
 * Mockito
 * GitHub Actions
 * Swagger / OpenAPI
+* Flyway
