@@ -12,6 +12,7 @@ import com.api.product.entity.Product;
 import com.api.product.repository.ProductRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import java.math.RoundingMode;
 
 @Service
 public class ProductService {
@@ -29,7 +30,7 @@ public class ProductService {
         Product product = new Product();
         product.setDescription(request.description());
         product.setStock(request.stock());
-        product.setPrice(request.price());
+        product.setPrice(request.price().setScale(2, RoundingMode.UNNECESSARY));
         product.setActive(true);
         categoryService.getById(request.category());
         Category category = new Category();
@@ -69,7 +70,7 @@ public class ProductService {
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com o ID: " + id));
 
         product.setDescription(request.description());
-        product.setPrice(request.price());
+        product.setPrice(request.price().setScale(2, RoundingMode.UNNECESSARY));
         product.setActive(request.active());
         product.setStock(request.stock());
 

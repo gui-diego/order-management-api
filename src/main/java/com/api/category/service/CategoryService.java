@@ -18,6 +18,11 @@ public class CategoryService {
     }
 
     public CategoryResponse save(CategoryRequest request) {
+
+        if (repository.existsByNameIgnoringId(request.name(), null)) {
+            throw new ConflictException("Já existe uma categoria com o nome informado");
+        }
+
         Category category = new Category();
         category.setName(request.name());
         Category saved = repository.save(category);
@@ -50,6 +55,10 @@ public class CategoryService {
     public CategoryResponse update(Integer id, CategoryRequest request) {
         Category category = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada com o ID: " + id));
+
+        if (repository.existsByNameIgnoringId(request.name(), id)) {
+            throw new ConflictException("Já existe uma categoria com o nome informado");
+        }
 
         category.setName(request.name());
         Category updated = repository.save(category);
