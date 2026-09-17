@@ -79,9 +79,10 @@ public class CategoryController {
                     )
             )
     })
-    @PutMapping
-    public ResponseEntity<CategoryResponse> update(@Valid @RequestBody CategoryRequest request) {
-        return ResponseEntity.ok(service.update(request));
+    @PutMapping("/{id}")
+    public ResponseEntity<CategoryResponse> update(@PathVariable("id") Integer id,
+                                                   @Valid @RequestBody CategoryRequest request) {
+        return ResponseEntity.ok(service.update(id, request));
     }
 
     @Operation(summary = "Get a category by ID")

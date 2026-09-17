@@ -6,8 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 public record ProductUpdateRequest(
-        @NotNull(message = "É obrigatório informar o ID do produto")
-        Integer id,
         @NotNull(message = "É obrigatório informar o status do produto, sendo true ou false")
         Boolean active,
         @NotBlank(message = "É obrigatório informar a descrição do produto")

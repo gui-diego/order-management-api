@@ -4,7 +4,6 @@ import com.api.category.dto.CategoryRequest;
 import com.api.category.dto.CategoryResponse;
 import com.api.category.entity.Category;
 import com.api.category.repository.CategoryRepository;
-import com.api.exception.BadRequestException;
 import com.api.exception.ConflictException;
 import com.api.exception.ResourceNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -48,13 +47,9 @@ public class CategoryService {
         }
     }
 
-    public CategoryResponse update(CategoryRequest request) {
-        if (request.id() == null) {
-            throw new BadRequestException("ID não pode ser nulo");
-        }
-
-        Category category = repository.findById(request.id())
-                .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada com o ID: " + request.id()));
+    public CategoryResponse update(Integer id, CategoryRequest request) {
+        Category category = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada com o ID: " + id));
 
         category.setName(request.name());
         Category updated = repository.save(category);

@@ -35,7 +35,7 @@ public class CategoryControllerTest {
     private CategoryRepository categoryRepository;
 
     private int createCategory() {
-        CategoryRequest request = new CategoryRequest(null, "Eletrônicos");
+        CategoryRequest request = new CategoryRequest("Eletrônicos");
         return categoryService.save(request).id();
     }
 
@@ -76,13 +76,12 @@ public class CategoryControllerTest {
 
         String json = """
         {
-            "id": %d,
             "name": "MODA"
         }
-        """.formatted(id);
+        """;
 
         mockMvc.perform(
-                        put("/categories")
+                        put("/categories/" + id)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )

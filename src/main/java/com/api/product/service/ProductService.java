@@ -64,9 +64,9 @@ public class ProductService {
         }
     }
 
-    public ProductResponse update(ProductUpdateRequest request) {
-        Product product = repository.findById(request.id())
-                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com o ID: " + request.id()));
+    public ProductResponse update(Integer id, ProductUpdateRequest request) {
+        Product product = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com o ID: " + id));
 
         product.setDescription(request.description());
         product.setPrice(request.price());

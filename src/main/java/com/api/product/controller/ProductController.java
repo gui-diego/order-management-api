@@ -88,9 +88,10 @@ public class ProductController {
                     )
             )
     })
-    @PutMapping
-    public ResponseEntity<ProductResponse> update(@Valid @RequestBody ProductUpdateRequest request) {
-        return ResponseEntity.ok(service.update(request));
+    @PutMapping("/{id}")
+    public ResponseEntity<ProductResponse> update(@PathVariable("id") Integer id,
+                                                  @Valid @RequestBody ProductUpdateRequest request) {
+        return ResponseEntity.ok(service.update(id, request));
     }
 
     @Operation(summary = "Get a product by ID")

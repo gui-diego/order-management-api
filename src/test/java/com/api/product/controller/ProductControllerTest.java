@@ -42,7 +42,7 @@ class ProductControllerTest {
     private record ProductTestData(int productId, int categoryId) {}
 
     private int createCategory() {
-        CategoryRequest request = new CategoryRequest(null, "Eletrônicos");
+        CategoryRequest request = new CategoryRequest("Eletrônicos");
         return categoryService.save(request).id();
     }
 
@@ -125,16 +125,15 @@ class ProductControllerTest {
 
         String json = """
         {
-          "id": %d,
           "price": 800,
           "description": "TV ATUALIZADA",
           "stock": 20,
           "active": true
         }
-        """.formatted(data.productId());
+        """;
 
         mockMvc.perform(
-                        put("/products")
+                        put("/products/" + data.productId())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
