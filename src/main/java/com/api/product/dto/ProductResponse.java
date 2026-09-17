@@ -4,7 +4,9 @@ import java.math.BigDecimal;
 
 public record ProductResponse(
         Integer id,
+        Integer categoryId,
         String description,
         Integer stock,
-        BigDecimal price) {
+        BigDecimal price,
+        boolean active) {
 }

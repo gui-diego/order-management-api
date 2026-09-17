@@ -1,9 +1,9 @@
 package com.api.product.controller;
 
 import com.api.exception.ErrorResponse;
-import com.api.product.dto.ProductRequest;
+import com.api.product.dto.ProductCreateRequest;
 import com.api.product.dto.ProductResponse;
-import com.api.product.entity.Product;
+import com.api.product.dto.ProductUpdateRequest;
 import com.api.product.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -55,7 +55,7 @@ public class ProductController {
             )
     })
     @PostMapping
-    public ResponseEntity<ProductResponse> save(@Valid @RequestBody ProductRequest request) {
+    public ResponseEntity<ProductResponse> save(@Valid @RequestBody ProductCreateRequest request) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(service.save(request));
@@ -89,7 +89,7 @@ public class ProductController {
             )
     })
     @PutMapping
-    public ResponseEntity<ProductResponse> update(@Valid @RequestBody ProductRequest request) {
+    public ResponseEntity<ProductResponse> update(@Valid @RequestBody ProductUpdateRequest request) {
         return ResponseEntity.ok(service.update(request));
     }
 
@@ -100,7 +100,7 @@ public class ProductController {
                     description = "Product successfully retrieved",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = Product.class)
+                            schema = @Schema(implementation = ProductResponse.class)
                     )
             ),
             @ApiResponse(
@@ -113,8 +113,8 @@ public class ProductController {
             )
     })
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable("id") Integer id) {
-        return ResponseEntity.ok(service.getById(id));
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable("id") Integer id) {
+        return ResponseEntity.ok(service.getResponseById(id));
     }
 
     @Operation(summary = "Delete a product")

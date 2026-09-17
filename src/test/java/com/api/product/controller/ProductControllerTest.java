@@ -56,8 +56,7 @@ class ProductControllerTest {
           "price": 700,
           "description": "TV DA MARCA XYZ",
           "category": %d,
-          "stock": 10,
-          "active": true
+          "stock": 10
         }
         """.formatted(categoryId);
 
@@ -70,7 +69,9 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.price").value(700))
                 .andExpect(jsonPath("$.description").value("TV DA MARCA XYZ"))
-                .andExpect(jsonPath("$.stock").value(10));
+                .andExpect(jsonPath("$.stock").value(10))
+                .andExpect(jsonPath("$.categoryId").value(categoryId))
+                .andExpect(jsonPath("$.active").value(true));
     }
 
     private ProductTestData createProduct() throws Exception {
@@ -82,8 +83,7 @@ class ProductControllerTest {
           "price": 700,
           "description": "TV DA MARCA XYZ",
           "category": %d,
-          "stock": 10,
-          "active": true
+          "stock": 10
         }
         """.formatted(categoryId);
 
@@ -113,7 +113,7 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$.id").value(data.productId()))
                 .andExpect(jsonPath("$.description").value("TV DA MARCA XYZ"))
                 .andExpect(jsonPath("$.price").value(700))
-                .andExpect(jsonPath("$.category.id").value(data.categoryId()))
+                .andExpect(jsonPath("$.categoryId").value(data.categoryId()))
                 .andExpect(jsonPath("$.stock").value(10))
                 .andExpect(jsonPath("$.active").value(true));
     }
@@ -128,14 +128,10 @@ class ProductControllerTest {
           "id": %d,
           "price": 800,
           "description": "TV ATUALIZADA",
-          "category": %d,
           "stock": 20,
           "active": true
         }
-        """.formatted(
-                data.productId(),
-                data.categoryId()
-        );
+        """.formatted(data.productId());
 
         mockMvc.perform(
                         put("/products")
@@ -146,7 +142,9 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$.id").value(data.productId()))
                 .andExpect(jsonPath("$.price").value(800))
                 .andExpect(jsonPath("$.description").value("TV ATUALIZADA"))
-                .andExpect(jsonPath("$.stock").value(20));
+                .andExpect(jsonPath("$.stock").value(20))
+                .andExpect(jsonPath("$.categoryId").value(data.categoryId()))
+                .andExpect(jsonPath("$.active").value(true));
     }
 
     @Test

@@ -5,8 +5,9 @@ import com.api.category.service.CategoryService;
 import com.api.exception.BadRequestException;
 import com.api.exception.ConflictException;
 import com.api.exception.ResourceNotFoundException;
-import com.api.product.dto.ProductRequest;
+import com.api.product.dto.ProductCreateRequest;
 import com.api.product.dto.ProductResponse;
+import com.api.product.dto.ProductUpdateRequest;
 import com.api.product.entity.Product;
 import com.api.product.repository.ProductRepository;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -24,7 +25,7 @@ public class ProductService {
         this.categoryService = categoryService;
     }
 
-    public ProductResponse save(ProductRequest request) {
+    public ProductResponse save(ProductCreateRequest request) {
         Product product = new Product();
         product.setDescription(request.description());
         product.setStock(request.stock());
@@ -36,7 +37,7 @@ public class ProductService {
         product.setCategory(category);
         Product saved = repository.save(product);
 
-        return getProductResponse(saved, product);
+        return getProductResponse(saved);
     }
 
     public Product getById(Integer id) {
@@ -50,6 +51,10 @@ public class ProductService {
         return product;
     }
 
+    public ProductResponse getResponseById(Integer id) {
+        return getProductResponse(getById(id));
+    }
+
     public void delete(Integer id) {
         Product product = getById(id);
         try {
@@ -59,10 +64,7 @@ public class ProductService {
         }
     }
 
-    public ProductResponse update(ProductRequest request) {
-        if (request.id() == null) {
-            throw new BadRequestException("ID não pode ser nulo");
-        }
+    public ProductResponse update(ProductUpdateRequest request) {
         Product product = repository.findById(request.id())
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com o ID: " + request.id()));
 
@@ -73,15 +75,17 @@ public class ProductService {
 
         Product updated = repository.save(product);
 
-        return getProductResponse(updated, product);
+        return getProductResponse(updated);
     }
 
-    private static ProductResponse getProductResponse(Product saved, Product product) {
+    private static ProductResponse getProductResponse(Product product) {
         return new ProductResponse(
-                saved.getId(),
-                saved.getDescription(),
+                product.getId(),
+                product.getCategory().getId(),
+                product.getDescription(),
                 product.getStock(),
-                product.getPrice()
+                product.getPrice(),
+                product.isActive()
         );
     }
 
