@@ -14,8 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @RestController
 @RequestMapping("/categories")
 public class CategoryController {
@@ -41,7 +39,7 @@ public class CategoryController {
                     description = "Invalid category data",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = Map.class)
+                            schema = @Schema(implementation = ErrorResponse.class)
                     )
             )
     })
@@ -67,7 +65,7 @@ public class CategoryController {
                     description = "Invalid category data",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = Map.class)
+                            schema = @Schema(implementation = ErrorResponse.class)
                     )
             ),
             @ApiResponse(

@@ -87,17 +87,12 @@ class OrderServiceTest {
 
     @Test
     void shouldNotCreateOrderWhenProductIsInactive() {
-        Product product = new Product();
-        product.setId(1);
-        product.setDescription("TV DA MARCA XYZ");
-        product.setStock(10);
-        product.setPrice(BigDecimal.valueOf(1500));
-        product.setActive(false);
-
-        when(productService.getById(product.getId())).thenReturn(product);
+        when(productService.getById(1))
+                .thenThrow(new BadRequestException(
+                        "Não foi possível retornar pois o produto informado está inativo"));
 
         OrderRequest request = new OrderRequest(
-                List.of(new OrderItemDTO(product.getId(), 2))
+                List.of(new OrderItemDTO(1, 2))
         );
 
         assertThrows(
@@ -106,6 +101,7 @@ class OrderServiceTest {
         );
 
         verify(repository, never()).save(any(Order.class));
+        verify(productService, never()).decrementStock(any(), any());
     }
 
     @Test

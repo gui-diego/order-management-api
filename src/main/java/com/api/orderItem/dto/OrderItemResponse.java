@@ -1,4 +1,4 @@
-package com.api.orderItem.entity;
+package com.api.orderItem.dto;
 
 import com.api.product.dto.ProductOrderResponse;
 

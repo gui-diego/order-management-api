@@ -9,13 +9,11 @@ import com.api.order.enums.StatusOrder;
 import com.api.order.repository.OrderRepository;
 import com.api.orderItem.dto.OrderItemDTO;
 import com.api.orderItem.entity.OrderItem;
-import com.api.orderItem.entity.OrderItemResponse;
+import com.api.orderItem.dto.OrderItemResponse;
 import com.api.product.dto.ProductOrderResponse;
-import com.api.product.dto.ProductResponse;
 import com.api.product.entity.Product;
 import com.api.product.service.ProductService;
 import jakarta.transaction.Transactional;
-import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

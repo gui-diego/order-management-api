@@ -15,8 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @RestController
 @RequestMapping("/products")
 public class ProductController {
@@ -42,7 +40,7 @@ public class ProductController {
                     description = "Invalid product data",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = Map.class)
+                            schema = @Schema(implementation = ErrorResponse.class)
                     )
             ),
             @ApiResponse(
@@ -76,7 +74,7 @@ public class ProductController {
                     description = "Invalid product data",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = Map.class)
+                            schema = @Schema(implementation = ErrorResponse.class)
                     )
             ),
             @ApiResponse(
