@@ -93,4 +93,8 @@ public class ProductService {
     public int decrementStock(Integer productId, Integer quantity) {
         return repository.decrementStock(productId, quantity);
     }
+
+    public int incrementStock(Integer productId, Integer quantity) {
+        return repository.incrementStock(productId, quantity);
+    }
 }

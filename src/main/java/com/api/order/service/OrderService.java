@@ -10,6 +10,7 @@ import com.api.order.repository.OrderRepository;
 import com.api.orderItem.dto.OrderItemDTO;
 import com.api.orderItem.entity.OrderItem;
 import com.api.orderItem.dto.OrderItemResponse;
+import com.api.payment.service.PaymentService;
 import com.api.product.dto.ProductOrderResponse;
 import com.api.product.entity.Product;
 import com.api.product.service.ProductService;
@@ -26,11 +27,14 @@ public class OrderService {
 
     private final OrderRepository repository;
     private final ProductService productService;
+    private final PaymentService paymentService;
 
     public OrderService(OrderRepository repository,
-                        ProductService productService) {
+                        ProductService productService,
+                        PaymentService paymentService) {
         this.repository = repository;
         this.productService = productService;
+        this.paymentService = paymentService;
     }
 
     public OrderResponse createOrder(OrderRequest request) {
@@ -91,13 +95,11 @@ public class OrderService {
 
         Order order = new Order();
         order.setCreatedAt(LocalDateTime.now());
-        order.setStatus(StatusOrder.PROCESSING);
+        order.setStatus(StatusOrder.PENDING);
         items.forEach( item -> item.setOrder(order));
         order.setItems(items);
         order.setTotal(totalPrice);
-        Order orderSaved = repository.save(order);
-        orderSaved.setStatus(StatusOrder.COMPLETED);
-        return orderSaved;
+        return repository.save(order);
     }
 
     private List<OrderItemResponse> getOrderItemResponses(Order orderSaved) {
@@ -124,5 +126,93 @@ public class OrderService {
         List<OrderItemResponse> orderItemResponse = getOrderItemResponses(order);
 
         return new OrderResponse(order.getId(), order.getCreatedAt(), order.getStatus(), order.getTotal(), orderItemResponse);
+    }
+
+    public int processOrdersWithStatusPending() {
+        List<Order> orderList = repository.findByStatus(StatusOrder.PENDING);
+        int processedCount = 0;
+        for (Order order : orderList) {
+            order.setStatus(StatusOrder.PROCESSING);
+            boolean approved = paymentService.processPayment(order.getTotal());
+            if (approved) {
+                order.setStatus(StatusOrder.PAYMENT_APPROVED);
+                processedCount++;
+            } else {
+                order.setStatus(StatusOrder.PAYMENT_FAILED);
+            }
+        }
+        return processedCount;
+    }
+
+    public OrderResponse cancelOrder(Integer id) {
+        Order order = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Não foi possível encontrar um pedido associado ao id informado: " + id
+                ));
+
+        if (order.getStatus() == StatusOrder.CANCELED ||
+            order.getStatus() == StatusOrder.SHIPPED ||
+            order.getStatus() == StatusOrder.DELIVERED) {
+            throw new BadRequestException("Não é possível cancelar o pedido no status atual: " + order.getStatus());
+        }
+
+        for (OrderItem item : order.getItems()) {
+            int updatedRows = productService.incrementStock(item.getProduct().getId(), item.getQuantity());
+            if (updatedRows == 0) {
+                throw new BadRequestException("Não foi possível restaurar o estoque do produto: " + item.getProduct().getId());
+            }
+        }
+
+        order.setStatus(StatusOrder.CANCELED);
+
+        return new OrderResponse(
+                order.getId(),
+                order.getCreatedAt(),
+                order.getStatus(),
+                order.getTotal(),
+                getOrderItemResponses(order)
+        );
+    }
+
+    public OrderResponse shipOrder(Integer id) {
+        Order order = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Não foi possível encontrar um pedido associado ao id informado: " + id
+                ));
+
+        if (order.getStatus() != StatusOrder.PAYMENT_APPROVED) {
+            throw new BadRequestException("Não é possível enviar um pedido no status atual: " + order.getStatus());
+        }
+
+        order.setStatus(StatusOrder.SHIPPED);
+
+        return new OrderResponse(
+                order.getId(),
+                order.getCreatedAt(),
+                order.getStatus(),
+                order.getTotal(),
+                getOrderItemResponses(order)
+        );
+    }
+
+    public OrderResponse deliverOrder(Integer id) {
+        Order order = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Não foi possível encontrar um pedido associado ao id informado: " + id
+                ));
+
+        if (order.getStatus() != StatusOrder.SHIPPED) {
+            throw new BadRequestException("O pedido não pode ser entregue no status atual: " + order.getStatus());
+        }
+
+        order.setStatus(StatusOrder.DELIVERED);
+
+        return new OrderResponse(
+                order.getId(),
+                order.getCreatedAt(),
+                order.getStatus(),
+                order.getTotal(),
+                getOrderItemResponses(order)
+        );
     }
 }
