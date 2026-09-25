@@ -80,6 +80,7 @@ public class OrderControllerTest {
                 .andExpect(jsonPath("$.items[0].unitPrice").value(1500))
                 .andExpect(jsonPath("$.items[0].subtotal").value(3000))
                 .andExpect(jsonPath("$.total").value(3000))
+                .andExpect(jsonPath("$.paymentReason").doesNotExist())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();

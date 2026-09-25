@@ -2,7 +2,11 @@ package com.api.order.repository;
 
 import com.api.order.entity.Order;
 import com.api.order.enums.StatusOrder;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -10,4 +14,19 @@ import java.util.Optional;
 public interface OrderRepository extends JpaRepository<Order, Integer> {
     Optional<Order> findById(Integer id);
     List<Order> findByStatus(StatusOrder status);
+
+    @Query("select o.id from Order o where o.status = :status")
+    List<Integer> findIdsByStatus(@Param("status") StatusOrder status);
+
+    @Transactional
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+            update Order o
+            set o.status = :processing
+            where o.id = :id
+              and o.status = :pending
+            """)
+    int markAsProcessing(@Param("id") Integer id,
+                         @Param("processing") StatusOrder processing,
+                         @Param("pending") StatusOrder pending);
 }

@@ -22,7 +22,7 @@ public class PaymentJob {
         if (processedCount == 0) {
             log.info("[ORDER JOB] - Processamento finalizado. Não há pedidos pendentes disponíveis.");
         } else {
-            log.info("[ORDER JOB] - Processamento de pedidos pendentes finalizado. Pedidos processados: {}", processedCount);
+            log.info("[ORDER JOB] - Processamento de pedidos pendentes finalizado. Pedidos concluídos: {}", processedCount);
         }
     }
 

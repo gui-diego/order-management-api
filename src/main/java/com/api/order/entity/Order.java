@@ -29,6 +29,9 @@ public class Order {
     @Column(precision = 10, scale = 2)
     private BigDecimal total;
 
+    @Column(length = 255)
+    private String paymentReason;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
     private List<OrderItem> items;
 

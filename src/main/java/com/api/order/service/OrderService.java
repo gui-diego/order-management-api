@@ -10,11 +10,12 @@ import com.api.order.repository.OrderRepository;
 import com.api.orderItem.dto.OrderItemDTO;
 import com.api.orderItem.entity.OrderItem;
 import com.api.orderItem.dto.OrderItemResponse;
-import com.api.payment.service.PaymentService;
 import com.api.product.dto.ProductOrderResponse;
 import com.api.product.entity.Product;
 import com.api.product.service.ProductService;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -22,26 +23,31 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
-@Transactional
 public class OrderService {
+
+    private static final Logger log = LoggerFactory.getLogger(OrderService.class);
+    private static final Set<StatusOrder> CANCELABLE = EnumSet.of(
+            StatusOrder.PENDING,
+            StatusOrder.PAYMENT_APPROVED
+    );
 
     private final OrderRepository repository;
     private final ProductService productService;
-    private final PaymentService paymentService;
+    private final OrderPaymentProcessor paymentProcessor;
 
     public OrderService(OrderRepository repository,
                         ProductService productService,
-                        PaymentService paymentService) {
+                        OrderPaymentProcessor paymentProcessor) {
         this.repository = repository;
         this.productService = productService;
-        this.paymentService = paymentService;
+        this.paymentProcessor = paymentProcessor;
     }
 
+    @Transactional
     public OrderResponse createOrder(OrderRequest request) {
         List<OrderItemDTO> itemsDTO = validateOrderItems(request);
         Order orderSaved = processOrder(itemsDTO);
-        List<OrderItemResponse> itemsResponse = getOrderItemResponses(orderSaved);
-        return new OrderResponse(orderSaved.getId(), orderSaved.getCreatedAt(), orderSaved.getStatus(), orderSaved.getTotal(), itemsResponse);
+        return toResponse(orderSaved);
     }
 
     private List<OrderItemDTO> validateOrderItems(OrderRequest request) {
@@ -115,44 +121,46 @@ public class OrderService {
                 .toList();
     }
 
+    @Transactional
     public OrderResponse getById(Integer id) {
-        Optional<Order> orderOptional = repository.findById(id);
-
-        if (orderOptional.isEmpty()) {
-            throw new ResourceNotFoundException("Não foi possível encontrar um pedido associado ao id informado: " + id);
-        }
-
-        Order order = orderOptional.get();
-        List<OrderItemResponse> orderItemResponse = getOrderItemResponses(order);
-
-        return new OrderResponse(order.getId(), order.getCreatedAt(), order.getStatus(), order.getTotal(), orderItemResponse);
+        Order order = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Não foi possível encontrar um pedido associado ao id informado: " + id
+                ));
+        return toResponse(order);
     }
 
     public int processOrdersWithStatusPending() {
-        List<Order> orderList = repository.findByStatus(StatusOrder.PENDING);
+        List<Integer> pendingOrderIds = repository.findIdsByStatus(StatusOrder.PENDING);
         int processedCount = 0;
-        for (Order order : orderList) {
-            order.setStatus(StatusOrder.PROCESSING);
-            boolean approved = paymentService.processPayment(order.getTotal());
-            if (approved) {
-                order.setStatus(StatusOrder.PAYMENT_APPROVED);
-                processedCount++;
-            } else {
-                order.setStatus(StatusOrder.PAYMENT_FAILED);
+
+        for (Integer orderId : pendingOrderIds) {
+            try {
+                boolean claimed = paymentProcessor.claim(orderId);
+                if (!claimed) {
+                    continue;
+                }
+
+                boolean finished = paymentProcessor.finish(orderId);
+                if (finished) {
+                    processedCount++;
+                }
+            } catch (RuntimeException ex) {
+                log.error("Falha ao processar pagamento do pedido {}", orderId, ex);
             }
         }
+
         return processedCount;
     }
 
+    @Transactional
     public OrderResponse cancelOrder(Integer id) {
         Order order = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Não foi possível encontrar um pedido associado ao id informado: " + id
                 ));
 
-        if (order.getStatus() == StatusOrder.CANCELED ||
-            order.getStatus() == StatusOrder.SHIPPED ||
-            order.getStatus() == StatusOrder.DELIVERED) {
+        if (!CANCELABLE.contains(order.getStatus())) {
             throw new BadRequestException("Não é possível cancelar o pedido no status atual: " + order.getStatus());
         }
 
@@ -164,16 +172,10 @@ public class OrderService {
         }
 
         order.setStatus(StatusOrder.CANCELED);
-
-        return new OrderResponse(
-                order.getId(),
-                order.getCreatedAt(),
-                order.getStatus(),
-                order.getTotal(),
-                getOrderItemResponses(order)
-        );
+        return toResponse(order);
     }
 
+    @Transactional
     public OrderResponse shipOrder(Integer id) {
         Order order = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -185,16 +187,10 @@ public class OrderService {
         }
 
         order.setStatus(StatusOrder.SHIPPED);
-
-        return new OrderResponse(
-                order.getId(),
-                order.getCreatedAt(),
-                order.getStatus(),
-                order.getTotal(),
-                getOrderItemResponses(order)
-        );
+        return toResponse(order);
     }
 
+    @Transactional
     public OrderResponse deliverOrder(Integer id) {
         Order order = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -206,12 +202,16 @@ public class OrderService {
         }
 
         order.setStatus(StatusOrder.DELIVERED);
+        return toResponse(order);
+    }
 
+    private OrderResponse toResponse(Order order) {
         return new OrderResponse(
                 order.getId(),
                 order.getCreatedAt(),
                 order.getStatus(),
                 order.getTotal(),
+                order.getPaymentReason(),
                 getOrderItemResponses(order)
         );
     }

@@ -14,3 +14,6 @@ spring:
 
   flyway:
     enabled: true
+
+payment:
+  simulated-max-amount: 10000.00
