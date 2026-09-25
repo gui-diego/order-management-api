@@ -1,12 +1,20 @@
 package com.api.product.repository;
 import com.api.product.entity.Product;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface ProductRepository extends JpaRepository<Product, Integer> {
+
+    Page<Product> findByActiveTrue(Pageable pageable);
+
+    Page<Product> findByActiveTrueAndCategory_Id(Integer categoryId, Pageable pageable);
+
+    Page<Product> findByCategory_Id(Integer categoryId, Pageable pageable);
 
     @Transactional
     @Modifying

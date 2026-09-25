@@ -11,6 +11,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -90,6 +93,29 @@ public class ProductController {
     public ResponseEntity<ProductResponse> update(@PathVariable("id") Integer id,
                                                   @Valid @RequestBody ProductUpdateRequest request) {
         return ResponseEntity.ok(service.update(id, request));
+    }
+
+    @Operation(summary = "List products")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Products successfully retrieved"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Category not found",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            )
+    })
+    @GetMapping
+    public ResponseEntity<Page<ProductResponse>> list(
+            @RequestParam(required = false) Integer categoryId,
+            @RequestParam(defaultValue = "false") boolean includeInactive,
+            @PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        return ResponseEntity.ok(service.list(categoryId, includeInactive, pageable));
     }
 
     @Operation(summary = "Get a product by ID")

@@ -1,6 +1,7 @@
 package com.api.order.service;
 
 import com.api.exception.BadRequestException;
+import com.api.exception.ConflictException;
 import com.api.exception.ResourceNotFoundException;
 import com.api.order.dto.OrderRequest;
 import com.api.order.dto.OrderResponse;
@@ -16,6 +17,9 @@ import com.api.product.service.ProductService;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -105,7 +109,11 @@ public class OrderService {
         items.forEach( item -> item.setOrder(order));
         order.setItems(items);
         order.setTotal(totalPrice);
-        return repository.save(order);
+        try {
+            return repository.save(order);
+        } catch (DataIntegrityViolationException ex) {
+            throw new ConflictException("Não é permitido adicionar o mesmo produto mais de uma vez ao pedido");
+        }
     }
 
     private List<OrderItemResponse> getOrderItemResponses(Order orderSaved) {
@@ -128,6 +136,14 @@ public class OrderService {
                         "Não foi possível encontrar um pedido associado ao id informado: " + id
                 ));
         return toResponse(order);
+    }
+
+    @Transactional
+    public Page<OrderResponse> list(StatusOrder status, Pageable pageable) {
+        Page<Order> orders = status == null
+                ? repository.findAll(pageable)
+                : repository.findByStatus(status, pageable);
+        return orders.map(this::toResponse);
     }
 
     public int processOrdersWithStatusPending() {

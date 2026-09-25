@@ -7,6 +7,8 @@ import com.api.category.repository.CategoryRepository;
 import com.api.exception.ConflictException;
 import com.api.exception.ResourceNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,6 +33,11 @@ public class CategoryService {
                 saved.getId(),
                 saved.getName()
         );
+    }
+
+    public Page<CategoryResponse> list(Pageable pageable) {
+        return repository.findAll(pageable)
+                .map(category -> new CategoryResponse(category.getId(), category.getName()));
     }
 
     public CategoryResponse getById(Integer id) {

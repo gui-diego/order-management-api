@@ -10,6 +10,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -81,6 +84,14 @@ public class CategoryController {
     public ResponseEntity<CategoryResponse> update(@PathVariable("id") Integer id,
                                                    @Valid @RequestBody CategoryRequest request) {
         return ResponseEntity.ok(service.update(id, request));
+    }
+
+    @Operation(summary = "List categories")
+    @ApiResponse(responseCode = "200", description = "Categories successfully retrieved")
+    @GetMapping
+    public ResponseEntity<Page<CategoryResponse>> list(
+            @PageableDefault(size = 20, sort = "name") Pageable pageable) {
+        return ResponseEntity.ok(service.list(pageable));
     }
 
     @Operation(summary = "Get a category by ID")

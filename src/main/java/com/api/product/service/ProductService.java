@@ -11,6 +11,8 @@ import com.api.product.dto.ProductUpdateRequest;
 import com.api.product.entity.Product;
 import com.api.product.repository.ProductRepository;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.math.RoundingMode;
 
@@ -53,11 +55,33 @@ public class ProductService {
     }
 
     public ProductResponse getResponseById(Integer id) {
-        return getProductResponse(getById(id));
+        Product product = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com o ID: " + id));
+        return getProductResponse(product);
+    }
+
+    public Page<ProductResponse> list(Integer categoryId, boolean includeInactive, Pageable pageable) {
+        if (categoryId != null) {
+            categoryService.getById(categoryId);
+        }
+
+        Page<Product> products;
+        if (includeInactive && categoryId == null) {
+            products = repository.findAll(pageable);
+        } else if (includeInactive) {
+            products = repository.findByCategory_Id(categoryId, pageable);
+        } else if (categoryId == null) {
+            products = repository.findByActiveTrue(pageable);
+        } else {
+            products = repository.findByActiveTrueAndCategory_Id(categoryId, pageable);
+        }
+
+        return products.map(ProductService::getProductResponse);
     }
 
     public void delete(Integer id) {
-        Product product = getById(id);
+        Product product = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com o ID: " + id));
         try {
             repository.deleteById(product.getId());
         } catch (DataIntegrityViolationException ex) {

@@ -2,6 +2,7 @@ package com.api.order.service;
 
 import com.api.category.entity.Category;
 import com.api.exception.BadRequestException;
+import com.api.exception.ConflictException;
 import com.api.exception.ResourceNotFoundException;
 import com.api.order.dto.OrderRequest;
 import com.api.order.dto.OrderResponse;
@@ -13,6 +14,7 @@ import com.api.orderItem.entity.OrderItem;
 import com.api.product.entity.Product;
 import com.api.product.service.ProductService;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -280,6 +282,24 @@ class OrderServiceTest {
         OrderResponse response = orderService.deliverOrder(10);
 
         assertEquals(StatusOrder.DELIVERED, response.status());
+    }
+
+    @Test
+    void shouldRejectOrderWhenTheSameProductIsPersistedTwice() {
+        Product product = new Product();
+        product.setId(1);
+        product.setDescription("TV");
+        product.setStock(10);
+        product.setPrice(BigDecimal.valueOf(10));
+        product.setActive(true);
+
+        when(productService.getById(1)).thenReturn(product);
+        when(productService.decrementStock(1, 1)).thenReturn(1);
+        when(repository.save(any(Order.class))).thenThrow(new DataIntegrityViolationException("duplicate"));
+
+        OrderRequest request = new OrderRequest(List.of(new OrderItemDTO(1, 1)));
+
+        assertThrows(ConflictException.class, () -> orderService.createOrder(request));
     }
 
     private Order orderWithStatus(StatusOrder status) {
