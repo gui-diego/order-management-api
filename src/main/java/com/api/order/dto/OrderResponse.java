@@ -10,6 +10,7 @@ import java.util.List;
 
 public record OrderResponse(
         Integer id,
+        @JsonInclude(JsonInclude.Include.NON_NULL) Integer customerId,
         LocalDateTime createdAt,
         StatusOrder status,
         BigDecimal total,

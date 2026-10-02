@@ -4,6 +4,7 @@ import com.api.category.entity.Category;
 import com.api.category.service.CategoryService;
 import com.api.exception.BadRequestException;
 import com.api.exception.ConflictException;
+import com.api.exception.ForbiddenException;
 import com.api.exception.ResourceNotFoundException;
 import com.api.product.dto.ProductCreateRequest;
 import com.api.product.dto.ProductResponse;
@@ -54,13 +55,19 @@ public class ProductService {
         return product;
     }
 
-    public ProductResponse getResponseById(Integer id) {
+    public ProductResponse getResponseById(Integer id, boolean canViewInactive) {
         Product product = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com o ID: " + id));
+        if (!product.isActive() && !canViewInactive) {
+            throw new ResourceNotFoundException("Produto não encontrado com o ID: " + id);
+        }
         return getProductResponse(product);
     }
 
-    public Page<ProductResponse> list(Integer categoryId, boolean includeInactive, Pageable pageable) {
+    public Page<ProductResponse> list(Integer categoryId, boolean includeInactive, boolean canViewInactive, Pageable pageable) {
+        if (includeInactive && !canViewInactive) {
+            throw new ForbiddenException("Apenas o administrador pode listar produtos inativos");
+        }
         if (categoryId != null) {
             categoryService.getById(categoryId);
         }

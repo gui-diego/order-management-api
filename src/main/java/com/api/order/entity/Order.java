@@ -2,6 +2,7 @@ package com.api.order.entity;
 
 import com.api.order.enums.StatusOrder;
 import com.api.orderItem.entity.OrderItem;
+import com.api.user.entity.UserAccount;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,6 +32,10 @@ public class Order {
 
     @Column(length = 255)
     private String paymentReason;
+
+    @ManyToOne
+    @JoinColumn(name = "customer_id")
+    private UserAccount customer;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
     private List<OrderItem> items;

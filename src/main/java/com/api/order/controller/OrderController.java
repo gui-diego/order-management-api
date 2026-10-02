@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -65,10 +66,11 @@ public class OrderController {
             )
     })
     @PostMapping
-    public ResponseEntity<OrderResponse> save(@Valid @RequestBody OrderRequest request) {
+    public ResponseEntity<OrderResponse> save(@Valid @RequestBody OrderRequest request,
+                                              Authentication authentication) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(service.createOrder(request));
+                .body(service.createOrder(request, authentication.getName()));
     }
 
     @Operation(summary = "List orders")
@@ -100,8 +102,9 @@ public class OrderController {
             )
     })
     @GetMapping("/{id}")
-    public ResponseEntity<OrderResponse> getById(@PathVariable("id") Integer id) {
-        return ResponseEntity.ok(service.getById(id));
+    public ResponseEntity<OrderResponse> getById(@PathVariable("id") Integer id,
+                                                 Authentication authentication) {
+        return ResponseEntity.ok(service.getById(id, authentication.getName()));
     }
 
     @Operation(summary = "Cancel an order by ID")

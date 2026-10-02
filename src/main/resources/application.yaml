@@ -17,3 +17,8 @@ spring:
 
 payment:
   simulated-max-amount: 10000.00
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:order-management-dev-secret-key-32b}
+    expiration-minutes: 120

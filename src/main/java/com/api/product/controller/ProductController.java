@@ -1,5 +1,6 @@
 package com.api.product.controller;
 
+import com.api.auth.AuthAccess;
 import com.api.exception.ErrorResponse;
 import com.api.product.dto.ProductCreateRequest;
 import com.api.product.dto.ProductResponse;
@@ -10,7 +11,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -110,12 +113,14 @@ public class ProductController {
                     )
             )
     })
+    @SecurityRequirements
     @GetMapping
     public ResponseEntity<Page<ProductResponse>> list(
             @RequestParam(required = false) Integer categoryId,
             @RequestParam(defaultValue = "false") boolean includeInactive,
-            @PageableDefault(size = 20, sort = "id") Pageable pageable) {
-        return ResponseEntity.ok(service.list(categoryId, includeInactive, pageable));
+            @PageableDefault(size = 20, sort = "id") Pageable pageable,
+            Authentication authentication) {
+        return ResponseEntity.ok(service.list(categoryId, includeInactive, AuthAccess.isAdmin(authentication), pageable));
     }
 
     @Operation(summary = "Get a product by ID")
@@ -137,9 +142,11 @@ public class ProductController {
                     )
             )
     })
+    @SecurityRequirements
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponse> getProductById(@PathVariable("id") Integer id) {
-        return ResponseEntity.ok(service.getResponseById(id));
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable("id") Integer id,
+                                                          Authentication authentication) {
+        return ResponseEntity.ok(service.getResponseById(id, AuthAccess.isAdmin(authentication)));
     }
 
     @Operation(summary = "Delete a product")

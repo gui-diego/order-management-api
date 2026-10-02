@@ -2,6 +2,7 @@ package com.api.order.service;
 
 import com.api.exception.BadRequestException;
 import com.api.exception.ConflictException;
+import com.api.exception.ForbiddenException;
 import com.api.exception.ResourceNotFoundException;
 import com.api.order.dto.OrderRequest;
 import com.api.order.dto.OrderResponse;
@@ -14,6 +15,9 @@ import com.api.orderItem.dto.OrderItemResponse;
 import com.api.product.dto.ProductOrderResponse;
 import com.api.product.entity.Product;
 import com.api.product.service.ProductService;
+import com.api.user.entity.UserAccount;
+import com.api.user.enums.Role;
+import com.api.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,19 +42,24 @@ public class OrderService {
     private final OrderRepository repository;
     private final ProductService productService;
     private final OrderPaymentProcessor paymentProcessor;
+    private final UserRepository userRepository;
 
     public OrderService(OrderRepository repository,
                         ProductService productService,
-                        OrderPaymentProcessor paymentProcessor) {
+                        OrderPaymentProcessor paymentProcessor,
+                        UserRepository userRepository) {
         this.repository = repository;
         this.productService = productService;
         this.paymentProcessor = paymentProcessor;
+        this.userRepository = userRepository;
     }
 
     @Transactional
-    public OrderResponse createOrder(OrderRequest request) {
+    public OrderResponse createOrder(OrderRequest request, String customerEmail) {
+        UserAccount customer = userRepository.findByEmail(customerEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário autenticado não encontrado"));
         List<OrderItemDTO> itemsDTO = validateOrderItems(request);
-        Order orderSaved = processOrder(itemsDTO);
+        Order orderSaved = processOrder(itemsDTO, customer);
         return toResponse(orderSaved);
     }
 
@@ -72,7 +81,7 @@ public class OrderService {
         return itemsDTO;
     }
 
-    private Order processOrder(List<OrderItemDTO> itemsDTO) {
+    private Order processOrder(List<OrderItemDTO> itemsDTO, UserAccount customer) {
         BigDecimal totalPrice = BigDecimal.ZERO;
         List<OrderItem> items = new ArrayList<>();
 
@@ -106,6 +115,7 @@ public class OrderService {
         Order order = new Order();
         order.setCreatedAt(LocalDateTime.now());
         order.setStatus(StatusOrder.PENDING);
+        order.setCustomer(customer);
         items.forEach( item -> item.setOrder(order));
         order.setItems(items);
         order.setTotal(totalPrice);
@@ -130,11 +140,22 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponse getById(Integer id) {
+    public OrderResponse getById(Integer id, String email) {
+        UserAccount currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário autenticado não encontrado"));
         Order order = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Não foi possível encontrar um pedido associado ao id informado: " + id
                 ));
+
+        if (currentUser.getRole() == Role.CUSTOMER) {
+            UserAccount owner = order.getCustomer();
+            boolean ownsOrder = owner != null && owner.getId().equals(currentUser.getId());
+            if (!ownsOrder) {
+                throw new ForbiddenException("Você só pode consultar o próprio pedido");
+            }
+        }
+
         return toResponse(order);
     }
 
@@ -222,8 +243,10 @@ public class OrderService {
     }
 
     private OrderResponse toResponse(Order order) {
+        Integer customerId = order.getCustomer() == null ? null : order.getCustomer().getId();
         return new OrderResponse(
                 order.getId(),
+                customerId,
                 order.getCreatedAt(),
                 order.getStatus(),
                 order.getTotal(),

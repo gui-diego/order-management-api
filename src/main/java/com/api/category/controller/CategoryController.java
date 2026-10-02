@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -88,6 +89,7 @@ public class CategoryController {
 
     @Operation(summary = "List categories")
     @ApiResponse(responseCode = "200", description = "Categories successfully retrieved")
+    @SecurityRequirements
     @GetMapping
     public ResponseEntity<Page<CategoryResponse>> list(
             @PageableDefault(size = 20, sort = "name") Pageable pageable) {
@@ -113,6 +115,7 @@ public class CategoryController {
                     )
             )
     })
+    @SecurityRequirements
     @GetMapping("/{id}")
     public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable("id") Integer id) {
         return ResponseEntity.ok(service.getById(id));
