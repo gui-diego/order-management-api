@@ -43,7 +43,7 @@ class ProductServiceTest {
         Pageable pageable = PageRequest.of(0, 20);
         when(repository.findByActiveTrue(pageable)).thenReturn(new PageImpl<>(List.of(activeProduct())));
 
-        var page = productService.list(null, false, pageable);
+        var page = productService.list(null, false, false, pageable);
 
         assertEquals(1, page.getTotalElements());
         verify(repository).findByActiveTrue(pageable);
@@ -57,7 +57,7 @@ class ProductServiceTest {
         inactive.setActive(false);
         when(repository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(inactive)));
 
-        var page = productService.list(null, true, pageable);
+        var page = productService.list(null, true, true, pageable);
 
         assertEquals(1, page.getTotalElements());
         assertFalse(page.getContent().getFirst().active());
@@ -70,7 +70,7 @@ class ProductServiceTest {
         when(repository.findByActiveTrueAndCategory_Id(4, pageable))
                 .thenReturn(new PageImpl<>(List.of(activeProduct())));
 
-        var page = productService.list(4, false, pageable);
+        var page = productService.list(4, false, false, pageable);
 
         assertEquals(1, page.getTotalElements());
         verify(repository).findByActiveTrueAndCategory_Id(4, pageable);
@@ -82,7 +82,7 @@ class ProductServiceTest {
         inactive.setActive(false);
         when(repository.findById(1)).thenReturn(java.util.Optional.of(inactive));
 
-        ProductResponse response = productService.getResponseById(1);
+        ProductResponse response = productService.getResponseById(1, true);
 
         assertEquals(false, response.active());
     }

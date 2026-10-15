@@ -13,6 +13,8 @@ import com.api.orderItem.dto.OrderItemDTO;
 import com.api.orderItem.entity.OrderItem;
 import com.api.product.entity.Product;
 import com.api.product.service.ProductService;
+import com.api.user.entity.UserAccount;
+import com.api.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,8 +44,18 @@ class OrderServiceTest {
     @Mock
     private OrderPaymentProcessor paymentProcessor;
 
+    @Mock
+    private UserRepository userRepository;
+
     @InjectMocks
     private OrderService orderService;
+
+    private void stubCustomer() {
+        UserAccount customer = new UserAccount();
+        customer.setId(7);
+        customer.setEmail("customer@order.local");
+        when(userRepository.findByEmail("customer@order.local")).thenReturn(Optional.of(customer));
+    }
 
     @Test
     void shouldCreateOrderWithCorrectTotal() {
@@ -72,7 +84,8 @@ class OrderServiceTest {
             return invocation.<Order>getArgument(0);
         });
 
-        OrderResponse orderResponse = orderService.createOrder(request);
+        stubCustomer();
+        OrderResponse orderResponse = orderService.createOrder(request, "customer@order.local");
 
         assertEquals(BigDecimal.valueOf(3000), orderResponse.total());
     }
@@ -86,9 +99,10 @@ class OrderServiceTest {
                 List.of(new OrderItemDTO(999, 2))
         );
 
+        stubCustomer();
         assertThrows(
                 ResourceNotFoundException.class,
-                () -> orderService.createOrder(request)
+                () -> orderService.createOrder(request, "customer@order.local")
         );
 
         verify(repository, never()).save(any(Order.class));
@@ -104,9 +118,10 @@ class OrderServiceTest {
                 List.of(new OrderItemDTO(1, 2))
         );
 
+        stubCustomer();
         assertThrows(
                 BadRequestException.class,
-                () -> orderService.createOrder(request)
+                () -> orderService.createOrder(request, "customer@order.local")
         );
 
         verify(repository, never()).save(any(Order.class));
@@ -128,9 +143,10 @@ class OrderServiceTest {
                 List.of(new OrderItemDTO(product.getId(), 5))
         );
 
+        stubCustomer();
         assertThrows(
                 BadRequestException.class,
-                () -> orderService.createOrder(request)
+                () -> orderService.createOrder(request, "customer@order.local")
         );
 
         verify(repository, never()).save(any(Order.class));
@@ -163,7 +179,8 @@ class OrderServiceTest {
             return invocation.<Order>getArgument(0);
         });
 
-        orderService.createOrder(request);
+        stubCustomer();
+        orderService.createOrder(request, "customer@order.local");
 
         verify(productService).decrementStock(product.getId(), 2);
     }
@@ -209,7 +226,8 @@ class OrderServiceTest {
             return invocation.<Order>getArgument(0);
         });
 
-        OrderResponse orderResponse = orderService.createOrder(request);
+        stubCustomer();
+        OrderResponse orderResponse = orderService.createOrder(request, "customer@order.local");
 
         assertEquals(BigDecimal.valueOf(4500), orderResponse.total());
     }
@@ -217,6 +235,7 @@ class OrderServiceTest {
     @Test
     void shouldKeepProcessingRemainingOrdersWhenOnePaymentFails() {
         when(repository.findIdsByStatus(StatusOrder.PENDING)).thenReturn(List.of(1, 2));
+        when(repository.findIdsByStatus(StatusOrder.PROCESSING)).thenReturn(List.of());
         when(paymentProcessor.claim(1)).thenReturn(true);
         when(paymentProcessor.finish(1)).thenThrow(new RuntimeException("falha inesperada"));
         when(paymentProcessor.claim(2)).thenReturn(true);
@@ -226,6 +245,19 @@ class OrderServiceTest {
 
         assertEquals(1, processed);
         verify(paymentProcessor).finish(2);
+    }
+
+    @Test
+    void shouldFinishProcessingOrderWithoutClaimingAgain() {
+        when(repository.findIdsByStatus(StatusOrder.PENDING)).thenReturn(List.of());
+        when(repository.findIdsByStatus(StatusOrder.PROCESSING)).thenReturn(List.of(9));
+        when(paymentProcessor.finish(9)).thenReturn(true);
+
+        int processed = orderService.processOrdersWithStatusPending();
+
+        assertEquals(1, processed);
+        verify(paymentProcessor, never()).claim(any());
+        verify(paymentProcessor).finish(9);
     }
 
     @Test
@@ -299,7 +331,8 @@ class OrderServiceTest {
 
         OrderRequest request = new OrderRequest(List.of(new OrderItemDTO(1, 1)));
 
-        assertThrows(ConflictException.class, () -> orderService.createOrder(request));
+        stubCustomer();
+        assertThrows(ConflictException.class, () -> orderService.createOrder(request, "customer@order.local"));
     }
 
     private Order orderWithStatus(StatusOrder status) {

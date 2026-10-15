@@ -21,6 +21,7 @@ class OrderResponseJsonTest {
     void shouldOmitPaymentReasonWhenItIsNull() {
         OrderResponse response = new OrderResponse(
                 1,
+                null,
                 LocalDateTime.of(2026, 9, 24, 21, 0),
                 StatusOrder.PENDING,
                 new BigDecimal("10.00"),
@@ -38,6 +39,7 @@ class OrderResponseJsonTest {
     void shouldIncludePaymentReasonWhenItHasAValue() {
         OrderResponse response = new OrderResponse(
                 1,
+                null,
                 LocalDateTime.of(2026, 9, 24, 21, 0),
                 StatusOrder.PAYMENT_APPROVED,
                 new BigDecimal("10.00"),

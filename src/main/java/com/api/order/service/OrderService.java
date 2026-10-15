@@ -187,6 +187,18 @@ public class OrderService {
             }
         }
 
+        List<Integer> processingOrderIds = repository.findIdsByStatus(StatusOrder.PROCESSING);
+        for (Integer orderId : processingOrderIds) {
+            try {
+                boolean finished = paymentProcessor.finish(orderId);
+                if (finished) {
+                    processedCount++;
+                }
+            } catch (RuntimeException ex) {
+                log.error("Falha ao retomar pagamento do pedido {}", orderId, ex);
+            }
+        }
+
         return processedCount;
     }
 
