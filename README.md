@@ -39,26 +39,6 @@ docker compose down
 
 `docker compose down -v` também apaga o volume do banco.
 
-### Sem Docker
-
-Java 21 e MySQL 8. Crie o banco `order_management` e exporte a conexão:
-
-```bash
-export DB_URL=jdbc:mysql://localhost:3306/order_management
-export DB_USERNAME=root
-export DB_PASSWORD=root
-./mvnw spring-boot:run
-```
-
-No PowerShell:
-
-```powershell
-$env:DB_URL = "jdbc:mysql://localhost:3306/order_management"
-$env:DB_USERNAME = "root"
-$env:DB_PASSWORD = "root"
-.\mvnw.cmd spring-boot:run
-```
-
 ## Testes
 
 ```bash
