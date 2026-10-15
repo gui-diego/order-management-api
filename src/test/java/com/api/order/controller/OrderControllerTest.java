@@ -7,11 +7,15 @@ import com.api.order.entity.Order;
 import com.api.order.repository.OrderRepository;
 import com.api.product.entity.Product;
 import com.api.product.repository.ProductRepository;
+import com.api.user.entity.UserAccount;
+import com.api.user.enums.Role;
+import com.api.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
@@ -25,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@WithMockUser(username = "customer@order.local", roles = "CUSTOMER")
 public class OrderControllerTest {
 
     @Autowired
@@ -38,6 +43,9 @@ public class OrderControllerTest {
 
     @Autowired
     private OrderRepository orderRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -58,6 +66,15 @@ public class OrderControllerTest {
         product.setCategory(category);
 
         product = productRepository.save(product);
+
+        if (userRepository.findByEmail("customer@order.local").isEmpty()) {
+            UserAccount customer = new UserAccount();
+            customer.setName("Cliente");
+            customer.setEmail("customer@order.local");
+            customer.setPassword("test");
+            customer.setRole(Role.CUSTOMER);
+            userRepository.save(customer);
+        }
 
         String request = """
             {
