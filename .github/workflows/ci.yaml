@@ -11,9 +11,9 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      DB_URL: ${{ vars.DB_URL }}
-      DB_USERNAME: ${{ vars.DB_USERNAME }}
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_URL: "jdbc:mysql://127.0.0.1:3306/order_management?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+      DB_USERNAME: root
+      DB_PASSWORD: root
 
     services:
       mysql:
@@ -27,7 +27,7 @@ jobs:
           --health-cmd="mysqladmin ping -h localhost -uroot -proot"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=10
 
     steps:
       - name: Checkout
