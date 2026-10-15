@@ -6,6 +6,7 @@ import com.api.auth.dto.LoginResponse;
 import com.api.auth.dto.RegisterRequest;
 import com.api.auth.dto.UserResponse;
 import com.api.auth.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -25,17 +26,20 @@ public class AuthController {
         this.authService = authService;
     }
 
+    @Operation(summary = "Register a customer")
     @SecurityRequirements
     @PostMapping("/register")
     public ResponseEntity<LoginResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(request));
     }
 
+    @Operation(summary = "Create a user")
     @PostMapping("/users")
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.createUser(request));
     }
 
+    @Operation(summary = "Log in")
     @SecurityRequirements
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
