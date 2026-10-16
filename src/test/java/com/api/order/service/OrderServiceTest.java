@@ -14,6 +14,7 @@ import com.api.orderItem.entity.OrderItem;
 import com.api.product.entity.Product;
 import com.api.product.service.ProductService;
 import com.api.user.entity.UserAccount;
+import com.api.user.enums.Role;
 import com.api.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -55,6 +56,14 @@ class OrderServiceTest {
         customer.setId(7);
         customer.setEmail("customer@order.local");
         when(userRepository.findByEmail("customer@order.local")).thenReturn(Optional.of(customer));
+    }
+
+    private void stubAdmin() {
+        UserAccount admin = new UserAccount();
+        admin.setId(1);
+        admin.setEmail("admin@order.local");
+        admin.setRole(Role.ADMIN);
+        when(userRepository.findByEmail("admin@order.local")).thenReturn(Optional.of(admin));
     }
 
     @Test
@@ -262,11 +271,13 @@ class OrderServiceTest {
 
     @Test
     void shouldCancelPendingOrderAndRestoreStock() {
-        Order order = orderWithStatus(StatusOrder.PENDING);
+        Order order = orderWithStatus(StatusOrder.CANCELED);
+        stubAdmin();
+        when(repository.markAsCanceled(eq(10), eq(StatusOrder.CANCELED), any())).thenReturn(1);
         when(repository.findById(10)).thenReturn(Optional.of(order));
         when(productService.incrementStock(5, 2)).thenReturn(1);
 
-        OrderResponse response = orderService.cancelOrder(10);
+        OrderResponse response = orderService.cancelOrder(10, "admin@order.local");
 
         assertEquals(StatusOrder.CANCELED, response.status());
         verify(productService).incrementStock(5, 2);
@@ -275,18 +286,22 @@ class OrderServiceTest {
     @Test
     void shouldNotCancelOrderWhenPaymentAlreadyFailed() {
         Order order = orderWithStatus(StatusOrder.PAYMENT_FAILED);
+        stubAdmin();
+        when(repository.markAsCanceled(eq(10), eq(StatusOrder.CANCELED), any())).thenReturn(0);
         when(repository.findById(10)).thenReturn(Optional.of(order));
 
-        assertThrows(BadRequestException.class, () -> orderService.cancelOrder(10));
+        assertThrows(BadRequestException.class, () -> orderService.cancelOrder(10, "admin@order.local"));
         verify(productService, never()).incrementStock(any(), any());
     }
 
     @Test
     void shouldNotCancelOrderWhilePaymentIsProcessing() {
         Order order = orderWithStatus(StatusOrder.PROCESSING);
+        stubAdmin();
+        when(repository.markAsCanceled(eq(10), eq(StatusOrder.CANCELED), any())).thenReturn(0);
         when(repository.findById(10)).thenReturn(Optional.of(order));
 
-        assertThrows(BadRequestException.class, () -> orderService.cancelOrder(10));
+        assertThrows(BadRequestException.class, () -> orderService.cancelOrder(10, "admin@order.local"));
         verify(productService, never()).incrementStock(any(), any());
     }
 

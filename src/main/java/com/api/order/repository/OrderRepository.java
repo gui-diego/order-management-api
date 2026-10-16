@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface OrderRepository extends JpaRepository<Order, Integer> {
     Optional<Order> findById(Integer id);
@@ -33,4 +34,16 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     int markAsProcessing(@Param("id") Integer id,
                          @Param("processing") StatusOrder processing,
                          @Param("pending") StatusOrder pending);
+
+    @Transactional
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+            update Order o
+            set o.status = :canceled
+            where o.id = :id
+              and o.status in :cancelable
+            """)
+    int markAsCanceled(@Param("id") Integer id,
+                       @Param("canceled") StatusOrder canceled,
+                       @Param("cancelable") Set<StatusOrder> cancelable);
 }

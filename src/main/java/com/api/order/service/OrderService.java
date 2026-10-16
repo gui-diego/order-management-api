@@ -148,15 +148,19 @@ public class OrderService {
                         "Não foi possível encontrar um pedido associado ao id informado: " + id
                 ));
 
+        checkOwnership(currentUser, order, "Você só pode consultar o próprio pedido");
+
+        return toResponse(order);
+    }
+
+    private void checkOwnership(UserAccount currentUser, Order order, String message) {
         if (currentUser.getRole() == Role.CUSTOMER) {
             UserAccount owner = order.getCustomer();
             boolean ownsOrder = owner != null && owner.getId().equals(currentUser.getId());
             if (!ownsOrder) {
-                throw new ForbiddenException("Você só pode consultar o próprio pedido");
+                throw new ForbiddenException(message);
             }
         }
-
-        return toResponse(order);
     }
 
     @Transactional
@@ -203,24 +207,34 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponse cancelOrder(Integer id) {
+    public OrderResponse cancelOrder(Integer id, String email) {
+        UserAccount currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário autenticado não encontrado"));
         Order order = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Não foi possível encontrar um pedido associado ao id informado: " + id
                 ));
 
-        if (!CANCELABLE.contains(order.getStatus())) {
+        checkOwnership(currentUser, order, "Você só pode cancelar o próprio pedido");
+
+        int updatedRows = repository.markAsCanceled(id, StatusOrder.CANCELED, CANCELABLE);
+
+        order = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Não foi possível encontrar um pedido associado ao id informado: " + id
+                ));
+
+        if (updatedRows == 0) {
             throw new BadRequestException("Não é possível cancelar o pedido no status atual: " + order.getStatus());
         }
 
         for (OrderItem item : order.getItems()) {
-            int updatedRows = productService.incrementStock(item.getProduct().getId(), item.getQuantity());
-            if (updatedRows == 0) {
+            int restoredRows = productService.incrementStock(item.getProduct().getId(), item.getQuantity());
+            if (restoredRows == 0) {
                 throw new BadRequestException("Não foi possível restaurar o estoque do produto: " + item.getProduct().getId());
             }
         }
 
-        order.setStatus(StatusOrder.CANCELED);
         return toResponse(order);
     }
 

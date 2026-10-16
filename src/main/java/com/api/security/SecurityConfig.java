@@ -53,7 +53,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/categories/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/orders").hasRole("CUSTOMER")
                         .requestMatchers(HttpMethod.GET, "/orders").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/orders/*/cancel", "/orders/*/ship", "/orders/*/deliver").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/orders/*/cancel").hasAnyRole("CUSTOMER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/orders/*/ship", "/orders/*/deliver").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/orders/*").hasAnyRole("CUSTOMER", "ADMIN")
                         .anyRequest().authenticated()
                 )
@@ -65,6 +66,7 @@ public class SecurityConfig {
     private static void write(HttpServletResponse response, int status, String message) throws java.io.IOException {
         response.setStatus(status);
         response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().write("{\"status\":" + status + ",\"message\":\"" + message + "\"}");
     }
 }

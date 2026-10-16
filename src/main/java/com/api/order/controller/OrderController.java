@@ -126,6 +126,14 @@ public class OrderController {
                     )
             ),
             @ApiResponse(
+                    responseCode = "403",
+                    description = "Customers can only cancel their own orders",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
                     responseCode = "404",
                     description = "Order not found",
                     content = @Content(
@@ -135,8 +143,9 @@ public class OrderController {
             )
     })
     @PostMapping("/{id}/cancel")
-    public ResponseEntity<OrderResponse> cancelOrder(@PathVariable("id") Integer id) {
-        return ResponseEntity.ok(service.cancelOrder(id));
+    public ResponseEntity<OrderResponse> cancelOrder(@PathVariable("id") Integer id,
+                                                     Authentication authentication) {
+        return ResponseEntity.ok(service.cancelOrder(id, authentication.getName()));
     }
 
     @Operation(summary = "Ship an order by ID")
