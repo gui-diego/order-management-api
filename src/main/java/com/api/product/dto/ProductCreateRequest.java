@@ -15,9 +15,9 @@ public record ProductCreateRequest(
         @NotNull(message = "É obrigatório informar o valor do produto")
         @Positive(message = "O valor do produto deve ser maior que zero")
         @Digits(
-                integer = 10,
+                integer = 8,
                 fraction = 2,
-                message = "O valor do produto deve ter no máximo 10 dígitos inteiros e 2 casas decimais"
+                message = "O valor do produto deve ter no máximo 8 dígitos inteiros e 2 casas decimais"
         )
         BigDecimal price) {
 }

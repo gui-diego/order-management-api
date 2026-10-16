@@ -240,31 +240,47 @@ public class OrderService {
 
     @Transactional
     public OrderResponse shipOrder(Integer id) {
+        if (!repository.existsById(id)) {
+            throw new ResourceNotFoundException(
+                    "Não foi possível encontrar um pedido associado ao id informado: " + id
+            );
+        }
+
+        int updatedRows = repository.markAsShipped(
+                id, StatusOrder.SHIPPED, StatusOrder.PAYMENT_APPROVED);
+
         Order order = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Não foi possível encontrar um pedido associado ao id informado: " + id
                 ));
 
-        if (order.getStatus() != StatusOrder.PAYMENT_APPROVED) {
+        if (updatedRows == 0) {
             throw new BadRequestException("Não é possível enviar um pedido no status atual: " + order.getStatus());
         }
 
-        order.setStatus(StatusOrder.SHIPPED);
         return toResponse(order);
     }
 
     @Transactional
     public OrderResponse deliverOrder(Integer id) {
+        if (!repository.existsById(id)) {
+            throw new ResourceNotFoundException(
+                    "Não foi possível encontrar um pedido associado ao id informado: " + id
+            );
+        }
+
+        int updatedRows = repository.markAsDelivered(
+                id, StatusOrder.DELIVERED, StatusOrder.SHIPPED);
+
         Order order = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Não foi possível encontrar um pedido associado ao id informado: " + id
                 ));
 
-        if (order.getStatus() != StatusOrder.SHIPPED) {
+        if (updatedRows == 0) {
             throw new BadRequestException("O pedido não pode ser entregue no status atual: " + order.getStatus());
         }
 
-        order.setStatus(StatusOrder.DELIVERED);
         return toResponse(order);
     }
 

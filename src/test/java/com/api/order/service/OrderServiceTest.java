@@ -308,11 +308,14 @@ class OrderServiceTest {
     @Test
     void shouldShipOnlyAfterPaymentApproval() {
         Order pending = orderWithStatus(StatusOrder.PENDING);
+        when(repository.existsById(10)).thenReturn(true);
+        when(repository.markAsShipped(10, StatusOrder.SHIPPED, StatusOrder.PAYMENT_APPROVED)).thenReturn(0);
         when(repository.findById(10)).thenReturn(Optional.of(pending));
         assertThrows(BadRequestException.class, () -> orderService.shipOrder(10));
 
-        Order approved = orderWithStatus(StatusOrder.PAYMENT_APPROVED);
-        when(repository.findById(10)).thenReturn(Optional.of(approved));
+        Order shipped = orderWithStatus(StatusOrder.SHIPPED);
+        when(repository.markAsShipped(10, StatusOrder.SHIPPED, StatusOrder.PAYMENT_APPROVED)).thenReturn(1);
+        when(repository.findById(10)).thenReturn(Optional.of(shipped));
         OrderResponse response = orderService.shipOrder(10);
 
         assertEquals(StatusOrder.SHIPPED, response.status());
@@ -321,11 +324,14 @@ class OrderServiceTest {
     @Test
     void shouldDeliverOnlyAfterShipment() {
         Order approved = orderWithStatus(StatusOrder.PAYMENT_APPROVED);
+        when(repository.existsById(10)).thenReturn(true);
+        when(repository.markAsDelivered(10, StatusOrder.DELIVERED, StatusOrder.SHIPPED)).thenReturn(0);
         when(repository.findById(10)).thenReturn(Optional.of(approved));
         assertThrows(BadRequestException.class, () -> orderService.deliverOrder(10));
 
-        Order shipped = orderWithStatus(StatusOrder.SHIPPED);
-        when(repository.findById(10)).thenReturn(Optional.of(shipped));
+        Order delivered = orderWithStatus(StatusOrder.DELIVERED);
+        when(repository.markAsDelivered(10, StatusOrder.DELIVERED, StatusOrder.SHIPPED)).thenReturn(1);
+        when(repository.findById(10)).thenReturn(Optional.of(delivered));
         OrderResponse response = orderService.deliverOrder(10);
 
         assertEquals(StatusOrder.DELIVERED, response.status());

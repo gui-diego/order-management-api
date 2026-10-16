@@ -46,4 +46,28 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     int markAsCanceled(@Param("id") Integer id,
                        @Param("canceled") StatusOrder canceled,
                        @Param("cancelable") Set<StatusOrder> cancelable);
+
+    @Transactional
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+            update Order o
+            set o.status = :shipped
+            where o.id = :id
+              and o.status = :paymentApproved
+            """)
+    int markAsShipped(@Param("id") Integer id,
+                      @Param("shipped") StatusOrder shipped,
+                      @Param("paymentApproved") StatusOrder paymentApproved);
+
+    @Transactional
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+            update Order o
+            set o.status = :delivered
+            where o.id = :id
+              and o.status = :shipped
+            """)
+    int markAsDelivered(@Param("id") Integer id,
+                        @Param("delivered") StatusOrder delivered,
+                        @Param("shipped") StatusOrder shipped);
 }
