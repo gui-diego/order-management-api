@@ -8,6 +8,7 @@ import com.api.exception.ForbiddenException;
 import com.api.exception.ResourceNotFoundException;
 import com.api.product.dto.ProductCreateRequest;
 import com.api.product.dto.ProductResponse;
+import com.api.product.dto.ProductStockRequest;
 import com.api.product.dto.ProductUpdateRequest;
 import com.api.product.entity.Product;
 import com.api.product.repository.ProductRepository;
@@ -103,11 +104,35 @@ public class ProductService {
         product.setDescription(request.description());
         product.setPrice(request.price().setScale(2, RoundingMode.UNNECESSARY));
         product.setActive(request.active());
-        product.setStock(request.stock());
 
         Product updated = repository.save(product);
 
         return getProductResponse(updated);
+    }
+
+    public ProductResponse adjustStock(Integer id, ProductStockRequest request) {
+        Integer quantity = request.quantity();
+        if (quantity == 0) {
+            throw new BadRequestException("A quantidade do ajuste de estoque não pode ser zero");
+        }
+
+        int updatedRows;
+        if (quantity > 0) {
+            updatedRows = repository.incrementStock(id, quantity);
+        } else {
+            updatedRows = repository.decrementStock(id, -quantity);
+        }
+
+        Product product = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com o ID: " + id));
+
+        if (updatedRows == 0) {
+            throw new BadRequestException(
+                    "Estoque insuficiente para remover " + (-quantity) + " unidades do produto: " + id
+            );
+        }
+
+        return getProductResponse(product);
     }
 
     private static ProductResponse getProductResponse(Product product) {

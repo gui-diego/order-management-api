@@ -129,7 +129,6 @@ class ProductControllerTest {
         {
           "price": 800,
           "description": "TV ATUALIZADA",
-          "stock": 20,
           "active": true
         }
         """;
@@ -143,7 +142,7 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$.id").value(data.productId()))
                 .andExpect(jsonPath("$.price").value(800))
                 .andExpect(jsonPath("$.description").value("TV ATUALIZADA"))
-                .andExpect(jsonPath("$.stock").value(20))
+                .andExpect(jsonPath("$.stock").value(10))
                 .andExpect(jsonPath("$.categoryId").value(data.categoryId()))
                 .andExpect(jsonPath("$.active").value(true));
     }

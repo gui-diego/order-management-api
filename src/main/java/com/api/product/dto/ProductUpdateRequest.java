@@ -9,9 +9,6 @@ public record ProductUpdateRequest(
         Boolean active,
         @NotBlank(message = "É obrigatório informar a descrição do produto")
         String description,
-        @NotNull(message = "É obrigatório informar a quantidade em estoque do produto")
-        @PositiveOrZero(message = "O estoque não pode ser negativo")
-        Integer stock,
         @NotNull(message = "É obrigatório informar o valor do produto")
         @Positive(message = "O valor do produto deve ser maior que zero")
         @Digits(

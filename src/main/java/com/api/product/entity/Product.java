@@ -4,10 +4,12 @@ import com.api.category.entity.Category;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.math.BigDecimal;
 
 @Entity
+@DynamicUpdate
 @Table(name = "product")
 @Getter
 @Setter

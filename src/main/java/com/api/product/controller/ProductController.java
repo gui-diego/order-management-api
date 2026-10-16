@@ -4,6 +4,7 @@ import com.api.auth.AuthAccess;
 import com.api.exception.ErrorResponse;
 import com.api.product.dto.ProductCreateRequest;
 import com.api.product.dto.ProductResponse;
+import com.api.product.dto.ProductStockRequest;
 import com.api.product.dto.ProductUpdateRequest;
 import com.api.product.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -96,6 +97,39 @@ public class ProductController {
     public ResponseEntity<ProductResponse> update(@PathVariable("id") Integer id,
                                                   @Valid @RequestBody ProductUpdateRequest request) {
         return ResponseEntity.ok(service.update(id, request));
+    }
+
+    @Operation(summary = "Adjust product stock")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Stock successfully adjusted",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ProductResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Zero quantity or insufficient stock to remove",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Product not found",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            )
+    })
+    @PatchMapping("/{id}/stock")
+    public ResponseEntity<ProductResponse> adjustStock(@PathVariable("id") Integer id,
+                                                       @Valid @RequestBody ProductStockRequest request) {
+        return ResponseEntity.ok(service.adjustStock(id, request));
     }
 
     @Operation(summary = "List products")
